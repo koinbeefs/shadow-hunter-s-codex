@@ -914,6 +914,35 @@ function ReaderView({
           </div>
         )}
       </div>
+
+      {/* Pager: previous / next page */}
+      {pages.length > 0 && (
+        <div className="sticky bottom-28 z-30 mt-4 flex justify-between gap-2 px-1">
+          <button
+            className="sys-btn !py-2 !px-3 flex items-center gap-1"
+            disabled={currentPage <= 0}
+            onClick={() => {
+              const target = Math.max(0, currentPage - 1);
+              document.getElementById(`page-${target}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            <ChevronLeft className="w-4 h-4" /> PREV
+          </button>
+          <div className="sys-panel !p-2 !px-3 text-[10px] system-font tracking-widest text-cyan-glow/80 self-center">
+            {currentPage + 1} / {pages.length}
+          </div>
+          <button
+            className="sys-btn !py-2 !px-3 flex items-center gap-1"
+            disabled={currentPage >= pages.length - 1}
+            onClick={() => {
+              const target = Math.min(pages.length - 1, currentPage + 1);
+              document.getElementById(`page-${target}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            NEXT <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
