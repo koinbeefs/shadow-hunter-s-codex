@@ -2,7 +2,7 @@
 const DB_NAME = "sl_reader";
 const DB_VERSION = 1;
 const PAGES_STORE = "pages"; // { id, chapterId, order, blob }
-const CHAPTERS_STORE = "chapters"; // { id, title, volume, order, pageCount, createdAt }
+const CHAPTERS_STORE = "chapters"; // { id, title, volume, order, pageCount, createdAt, isPreloaded, preloadedPages }
 
 export type Chapter = {
   id: string;
@@ -11,6 +11,8 @@ export type Chapter = {
   order: number;
   pageCount: number;
   createdAt: number;
+  isPreloaded?: boolean;
+  preloadedPages?: string[];
 };
 
 export type PageRecord = {
@@ -67,6 +69,16 @@ export async function saveChapter(chapter: Chapter, pages: Blob[]): Promise<void
         blob,
       });
     });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function savePreloadedChapter(chapter: Chapter): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(CHAPTERS_STORE, "readwrite");
+    tx.objectStore(CHAPTERS_STORE).put(chapter);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });

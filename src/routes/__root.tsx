@@ -7,7 +7,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import splashGif from "../assets/splash.gif";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -114,11 +115,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <head>
+    <html lang="en" suppressHydrationWarning>
+      <head suppressHydrationWarning>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
@@ -126,12 +127,35 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Initialize false so SSR and client agree on first render (no hydration mismatch).
+  // useEffect runs only on the client — safe to check window.Capacitor here.
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     import("../lib/register-sw").then((m) => m.registerServiceWorker());
+    const native = !!(window as unknown as { Capacitor?: unknown }).Capacitor;
+    if (!native) {
+      setShowSplash(true);
+      const timer = setTimeout(() => setShowSplash(false), 1000);
+      return () => clearTimeout(timer);
+    }
   }, []);
+
+  if (showSplash) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
+        <img
+          src={splashGif}
+          alt="System Initializing..."
+          className="w-full h-full object-contain md:object-cover pointer-events-none"
+        />
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

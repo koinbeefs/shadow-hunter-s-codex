@@ -12,4 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: {
+    // @ts-expect-error - lovable config typings are incomplete
+    prerender: {
+      routes: ["/"],
+      crawlLinks: true
+    }
+  }
 });
