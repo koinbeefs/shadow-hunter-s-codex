@@ -20,6 +20,9 @@ import {
   Pause,
   Trash2,
   ChevronLeft,
+  ChevronRight,
+  FileText,
+  ImageIcon,
 } from "lucide-react";
 import {
   listChapters,
@@ -185,21 +188,27 @@ function App() {
     (async () => {
       const existing = await listChapters();
       if (existing.length === 0) {
-        for (let v = 1; v <= 1; v++) {
-          for (let c = 1; c <= 3; c++) {
-            const pages = await generateSamplePages(`Volume ${v} · Chapter ${c}`, 5);
-            await saveChapter(
-              {
-                id: crypto.randomUUID(),
-                title: `Sample Chapter ${c}`,
-                volume: v,
-                order: c,
-                pageCount: pages.length,
-                createdAt: Date.now(),
-              },
-              pages,
-            );
-          }
+        // Seed 5 sample chapters across 2 volumes so the library/reader work immediately.
+        const seeds: { volume: number; order: number; title: string }[] = [
+          { volume: 1, order: 1, title: "Sample Chapter 1 — The Weakest Hunter" },
+          { volume: 1, order: 2, title: "Sample Chapter 2 — Double Dungeon" },
+          { volume: 1, order: 3, title: "Sample Chapter 3 — The System" },
+          { volume: 2, order: 4, title: "Sample Chapter 4 — Daily Quest" },
+          { volume: 2, order: 5, title: "Sample Chapter 5 — Re-Awakening" },
+        ];
+        for (const s of seeds) {
+          const pages = await generateSamplePages(`Volume ${s.volume} · Chapter ${s.order}`, 6);
+          await saveChapter(
+            {
+              id: crypto.randomUUID(),
+              title: s.title,
+              volume: s.volume,
+              order: s.order,
+              pageCount: pages.length,
+              createdAt: Date.now(),
+            },
+            pages,
+          );
         }
         setRefreshTick((n) => n + 1);
       }
@@ -477,8 +486,10 @@ function HomeView({ game, onGoto }: { game: ReturnType<typeof useGameState>; onG
         <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
           {state.activity.slice(0, 12).map((a) => (
             <div key={a.id} className="text-xs system-font text-cyan-glow/80 tracking-wide">
-              <span className="text-cyan-glow/50">
-                {new Date(a.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              <span className="text-cyan-glow/50" suppressHydrationWarning>
+                {game.hydrated
+                  ? new Date(a.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                  : "--:--"}
               </span>{" "}
               {a.message}
             </div>
@@ -533,35 +544,91 @@ function LibraryView({
   onDelete: (id: string) => Promise<void>;
   notify: (m: string, k?: any) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState<{ current: number; total: number } | null>(null);
+  const imgInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<{
+    label: string;
+    current: number;
+    total: number;
+  } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
-  const handleFiles = async (files: FileList) => {
+  const handleImages = async (files: FileList) => {
     if (!files.length) return;
-    setUploading({ current: 0, total: files.length });
-    // Group files by parsed volume+order (each file = 1 page? or bulk?).
-    // Simpler UX: each folder-selected batch of images becomes ONE chapter with pages in filename order.
-    const arr = Array.from(files).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-    const meta = parseFilename(arr[0].name);
-    const pages: Blob[] = [];
-    for (let i = 0; i < arr.length; i++) {
-      pages.push(arr[i]);
-      setUploading({ current: i + 1, total: arr.length });
+    setImportError(null);
+    try {
+      const arr = Array.from(files).sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { numeric: true }),
+      );
+      const invalid = arr.filter((f) => !f.type.startsWith("image/"));
+      if (invalid.length) {
+        throw new Error(`Unsupported file: ${invalid[0].name}. Only images allowed here.`);
+      }
+      setUploading({ label: "IMPORTING IMAGES", current: 0, total: arr.length });
+      const pages: Blob[] = [];
+      for (let i = 0; i < arr.length; i++) {
+        pages.push(arr[i]);
+        setUploading({ label: "IMPORTING IMAGES", current: i + 1, total: arr.length });
+      }
+      const meta = parseFilename(arr[0].name);
+      await saveChapter(
+        {
+          id: crypto.randomUUID(),
+          title: meta.title || `Chapter ${meta.order || Date.now()}`,
+          volume: meta.volume,
+          order: meta.order,
+          pageCount: pages.length,
+          createdAt: Date.now(),
+        },
+        pages,
+      );
+      notify(`Chapter imported (${pages.length} pages)`, "info");
+      await onImport();
+    } catch (err: any) {
+      const msg = err?.message || "Import failed";
+      setImportError(msg);
+      notify(msg, "danger");
+    } finally {
+      setUploading(null);
     }
-    await saveChapter(
-      {
-        id: crypto.randomUUID(),
-        title: meta.title || `Chapter ${meta.order || Date.now()}`,
-        volume: meta.volume,
-        order: meta.order,
-        pageCount: pages.length,
-        createdAt: Date.now(),
-      },
-      pages,
-    );
-    setUploading(null);
-    notify(`Chapter imported (${pages.length} pages)`, "info");
-    await onImport();
+  };
+
+  const handlePdfs = async (files: FileList) => {
+    if (!files.length) return;
+    setImportError(null);
+    try {
+      const { pdfToPageBlobs } = await import("@/lib/pdf-import");
+      const arr = Array.from(files);
+      for (const file of arr) {
+        if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+          throw new Error(`Not a PDF: ${file.name}`);
+        }
+        setUploading({ label: `RENDERING ${file.name}`, current: 0, total: 1 });
+        const pages = await pdfToPageBlobs(file, (c, t) =>
+          setUploading({ label: `RENDERING ${file.name}`, current: c, total: t }),
+        );
+        const meta = parseFilename(file.name);
+        await saveChapter(
+          {
+            id: crypto.randomUUID(),
+            title: meta.title || file.name.replace(/\.pdf$/i, ""),
+            volume: meta.volume,
+            order: meta.order,
+            pageCount: pages.length,
+            createdAt: Date.now(),
+          },
+          pages,
+        );
+        notify(`PDF imported: ${file.name} (${pages.length} pages)`, "info");
+      }
+      await onImport();
+    } catch (err: any) {
+      const msg = err?.message || "PDF import failed";
+      setImportError(msg);
+      notify(msg, "danger");
+    } finally {
+      setUploading(null);
+    }
   };
 
   const grouped = useMemo(() => {
@@ -585,27 +652,57 @@ function LibraryView({
       <SysPanel>
         <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow">LIBRARY</h2>
         <p className="text-xs text-muted-foreground mt-1 system-font tracking-wide">
-          Add your Solo Leveling chapter images. Filenames like "Vol-01-Ch-003.jpg" are auto-organized.
+          Add your Solo Leveling chapters as images or PDFs. Filenames like "Vol-01-Ch-003" are auto-organized.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <SysBtn onClick={() => inputRef.current?.click()}>
-            <Upload className="w-4 h-4 inline mr-2" /> IMPORT CHAPTER
+          <SysBtn onClick={() => imgInputRef.current?.click()}>
+            <ImageIcon className="w-4 h-4 inline mr-2" /> IMPORT IMAGES
+          </SysBtn>
+          <SysBtn onClick={() => pdfInputRef.current?.click()}>
+            <FileText className="w-4 h-4 inline mr-2" /> IMPORT PDF
           </SysBtn>
           <input
-            ref={inputRef}
+            ref={imgInputRef}
             type="file"
             multiple
             accept="image/*"
             className="hidden"
-            onChange={(e) => e.target.files && handleFiles(e.target.files)}
+            onChange={(e) => {
+              if (e.target.files) handleImages(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <input
+            ref={pdfInputRef}
+            type="file"
+            multiple
+            accept="application/pdf,.pdf"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files) handlePdfs(e.target.files);
+              e.target.value = "";
+            }}
           />
         </div>
         {uploading && (
           <div className="mt-3 sys-panel !p-3">
             <div className="text-xs system-font text-cyan-glow tracking-widest mb-1">
-              [SYSTEM] IMPORTING · {uploading.current}/{uploading.total}
+              [SYSTEM] {uploading.label} · {uploading.current}/{uploading.total}
             </div>
-            <SysBar value={uploading.current} max={uploading.total} />
+            <SysBar value={uploading.current} max={Math.max(uploading.total, 1)} />
+          </div>
+        )}
+        {importError && !uploading && (
+          <div className="mt-3 sys-panel !p-3 !border-[color:var(--color-danger-glow)]/60">
+            <div className="text-xs system-font tracking-widest sys-text-danger">
+              [SYSTEM · ERROR] {importError}
+            </div>
+            <button
+              onClick={() => setImportError(null)}
+              className="mt-1 text-[10px] system-font tracking-widest text-cyan-glow/60 hover:text-cyan-glow"
+            >
+              DISMISS
+            </button>
           </div>
         )}
       </SysPanel>
@@ -817,6 +914,35 @@ function ReaderView({
           </div>
         )}
       </div>
+
+      {/* Pager: previous / next page */}
+      {pages.length > 0 && (
+        <div className="sticky bottom-28 z-30 mt-4 flex justify-between gap-2 px-1">
+          <button
+            className="sys-btn !py-2 !px-3 flex items-center gap-1"
+            disabled={currentPage <= 0}
+            onClick={() => {
+              const target = Math.max(0, currentPage - 1);
+              document.getElementById(`page-${target}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            <ChevronLeft className="w-4 h-4" /> PREV
+          </button>
+          <div className="sys-panel !p-2 !px-3 text-[10px] system-font tracking-widest text-cyan-glow/80 self-center">
+            {currentPage + 1} / {pages.length}
+          </div>
+          <button
+            className="sys-btn !py-2 !px-3 flex items-center gap-1"
+            disabled={currentPage >= pages.length - 1}
+            onClick={() => {
+              const target = Math.min(pages.length - 1, currentPage + 1);
+              document.getElementById(`page-${target}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            NEXT <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
