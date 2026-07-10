@@ -20,6 +20,9 @@ import {
   Pause,
   Trash2,
   ChevronLeft,
+  ChevronRight,
+  FileText,
+  ImageIcon,
 } from "lucide-react";
 import {
   listChapters,
