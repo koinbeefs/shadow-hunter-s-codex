@@ -483,8 +483,10 @@ function HomeView({ game, onGoto }: { game: ReturnType<typeof useGameState>; onG
         <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
           {state.activity.slice(0, 12).map((a) => (
             <div key={a.id} className="text-xs system-font text-cyan-glow/80 tracking-wide">
-              <span className="text-cyan-glow/50">
-                {new Date(a.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              <span className="text-cyan-glow/50" suppressHydrationWarning>
+                {game.hydrated
+                  ? new Date(a.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                  : "--:--"}
               </span>{" "}
               {a.message}
             </div>
