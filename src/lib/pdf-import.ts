@@ -35,6 +35,6 @@ export async function pdfToPageBlobs(
     onProgress?.(i, doc.numPages);
     page.cleanup();
   }
-  await doc.destroy();
+  await (doc as any).destroy?.();
   return out;
 }
