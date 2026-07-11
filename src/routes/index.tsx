@@ -364,7 +364,8 @@ const NAV_ITEMS: { id: View; label: string; icon: React.ComponentType<{ classNam
   { id: "quests", label: "Quests", icon: Swords },
   { id: "stats", label: "Stats", icon: BarChart3 },
   { id: "history", label: "History", icon: History },
-  { id: "inventory", label: "Shadow Army", icon: Ghost },
+  { id: "inventory", label: "Inventory", icon: Gem },
+  { id: "shadow-army", label: "Shadow Army", icon: Ghost },
   { id: "achievements", label: "Achievements", icon: Trophy },
   { id: "shop", label: "Shop", icon: Store },
 ];
