@@ -143,6 +143,12 @@ function RootComponent() {
       const timer = setTimeout(() => setShowSplash(false), 1000);
       return () => clearTimeout(timer);
     }
+    // Hide Capacitor splash screen when app is ready
+    if (native) {
+      import("@capacitor/splash-screen").then(({ SplashScreen }) => {
+        SplashScreen.hide();
+      });
+    }
   }, []);
 
   if (showSplash) {

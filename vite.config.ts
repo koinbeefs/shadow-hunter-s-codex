@@ -13,7 +13,8 @@ export default defineConfig({
     server: { entry: "server" },
   },
   nitro: {
-    // @ts-expect-error - lovable config typings are incomplete
+    preset: "vercel",
+    // @ts-expect-error - lovable config typings are incomplete (prerender not recognized)
     prerender: {
       routes: ["/"],
       crawlLinks: true
