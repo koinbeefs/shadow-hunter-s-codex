@@ -416,6 +416,8 @@ function HomeView({ game, onGoto }: { game: ReturnType<typeof useGameState>; onG
   const { state, setPlayerName, completeQuest, rest } = game;
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(state.playerName);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   useEffect(() => setName(state.playerName), [state.playerName]);
   const expNext = expForNextLevel(state.level);
 
@@ -423,6 +425,34 @@ function HomeView({ game, onGoto }: { game: ReturnType<typeof useGameState>; onG
   const hasMonarchItem = gear.armor === "Monarch's Cloak" || gear.accessory === "Shadow Monarch's Crown";
   const playerClass = hasMonarchItem ? "SHADOW MONARCH" : "NECROMANCER";
   const currentPortrait = state.level >= 31 ? jinwoo : state.level >= 21 ? jinwoo2 : jinwoo3;
+
+  // PWA install prompt detection
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    // Check if already installed
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setShowInstallPrompt(false);
+    }
+
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setShowInstallPrompt(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -490,6 +520,22 @@ function HomeView({ game, onGoto }: { game: ReturnType<typeof useGameState>; onG
           <div className="sys-panel !p-2 !px-3">CHAPTERS · <span className="sys-text-glow">{state.chaptersRead}</span></div>
         </div>
       </SysPanel>
+
+      {showInstallPrompt && (
+        <SysPanel>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[10px] tracking-[0.4em] text-cyan-glow/80 system-font">INSTALL APP</div>
+              <div className="text-xs text-muted-foreground mt-1">Add to home screen for offline access</div>
+            </div>
+            <SysBtn onClick={handleInstall}>
+              <span className="flex items-center gap-2">
+                <Download className="w-4 h-4" /> INSTALL
+              </span>
+            </SysBtn>
+          </div>
+        </SysPanel>
+      )}
 
       <SysPanel>
         <div className="flex items-center justify-between mb-3">
