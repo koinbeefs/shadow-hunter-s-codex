@@ -278,7 +278,10 @@ function App() {
             chapters={chapters}
             game={game}
             progress={game.state.progress[readingChapter]}
-            onPage={(p, total, ms) => game.recordPageRead(readingChapter, p, total, ms)}
+            onPage={(p, total, ms) => {
+              const ch = chapters.find((c) => c.id === readingChapter);
+              game.recordPageRead(readingChapter, p, total, ms, ch?.order);
+            }}
             onBookmark={game.bookmark}
             onBack={() => setView("library")}
             onChapterChange={(id) => setReadingChapter(id)}
