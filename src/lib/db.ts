@@ -1,6 +1,6 @@
 // Simple IndexedDB wrapper for storing chapter images as blobs.
 const DB_NAME = "sl_reader";
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented to force clear of old sample chapters
 const PAGES_STORE = "pages"; // { id, chapterId, order, blob }
 const CHAPTERS_STORE = "chapters"; // { id, title, volume, order, pageCount, createdAt, isPreloaded, preloadedPages }
 
@@ -148,4 +148,15 @@ export function parseFilename(name: string): { volume: number; order: number; ti
     order,
     title: clean.replace(/[_-]+/g, " ").trim(),
   };
+}
+
+export async function clearAllData(): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([CHAPTERS_STORE, PAGES_STORE], "readwrite");
+    tx.objectStore(CHAPTERS_STORE).clear();
+    tx.objectStore(PAGES_STORE).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
 }
