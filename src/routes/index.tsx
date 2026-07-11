@@ -1305,7 +1305,11 @@ function ReaderView({
             PAGE {currentPage + 1} / {pages.length}
           </div>
           <button
-            className="sys-btn !py-2 !px-3 flex items-center gap-1"
+            className={`sys-btn !py-2 !px-3 flex items-center gap-1 transition-all ${
+              progress?.finished && nextChapter
+                ? "!border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)] animate-sys-pulse shadow-[0_0_18px_rgba(212,175,55,0.45)]"
+                : ""
+            }`}
             disabled={!nextChapter || !progress?.finished}
             onClick={() => {
               if (nextChapter) {
