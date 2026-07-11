@@ -60,7 +60,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Hashed built assets and static files: cache-first.
-  if (url.pathname.startsWith("/assets/") || /\.(js|css|woff2?|ttf|png|jpg|jpeg|svg|webp|ico|json|webmanifest)$/i.test(url.pathname)) {
+  if (url.pathname.startsWith("/assets/") || url.pathname.startsWith("/chapters/") || /\.(js|css|woff2?|ttf|png|jpg|jpeg|svg|webp|ico|json|webmanifest)$/i.test(url.pathname)) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(ASSET_CACHE);
