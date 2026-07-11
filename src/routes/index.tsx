@@ -41,7 +41,6 @@ import {
   type Chapter,
 } from "@/lib/db";
 import { useGameState, expForNextLevel, SHOP_ITEMS, getStatsWithGear } from "@/lib/store";
-import { generateSamplePages } from "@/lib/sample-pages";
 import jinwoo3 from "@/assets/Jinwoo3.gif";
 import jinwoo2 from "@/assets/Jinwoo2.gif";
 import jinwoo from "@/assets/Jinwoo.gif";
@@ -236,40 +235,6 @@ function App() {
     })();
   }, [game.hydrated, reloadChapters]);
 
-  // Seed sample chapter on first run
-  useEffect(() => {
-    if (!game.hydrated) return;
-    if (game.state.onboarded) return;
-    (async () => {
-      const existing = await listChapters();
-      if (existing.length === 0) {
-        // Seed 5 sample chapters across 2 volumes so the library/reader work immediately.
-        const seeds: { volume: number; order: number; title: string }[] = [
-          { volume: 1, order: 1, title: "Sample Chapter 1 — The Weakest Hunter" },
-          { volume: 1, order: 2, title: "Sample Chapter 2 — Double Dungeon" },
-          { volume: 1, order: 3, title: "Sample Chapter 3 — The System" },
-          { volume: 2, order: 4, title: "Sample Chapter 4 — Daily Quest" },
-          { volume: 2, order: 5, title: "Sample Chapter 5 — Re-Awakening" },
-        ];
-        for (const s of seeds) {
-          const pages = await generateSamplePages(`Volume ${s.volume} · Chapter ${s.order}`, 6);
-          await saveChapter(
-            {
-              id: crypto.randomUUID(),
-              title: s.title,
-              volume: s.volume,
-              order: s.order,
-              pageCount: pages.length,
-              createdAt: Date.now(),
-            },
-            pages,
-          );
-        }
-        setRefreshTick((n) => n + 1);
-      }
-      game.finishOnboarding();
-    })();
-  }, [game.hydrated, game.state.onboarded, game]);
 
   const openReader = (id: string) => {
     setReadingChapter(id);
