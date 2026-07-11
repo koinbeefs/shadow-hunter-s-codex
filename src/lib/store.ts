@@ -400,7 +400,7 @@ export function useGameState(notify: Notify) {
   );
 
   const recordPageRead = useCallback(
-    (chapterId: string, page: number, total: number, readingMs = 0) => {
+    (chapterId: string, page: number, total: number, readingMs = 0, chapterOrder?: number) => {
       let goldEarned = 0;
       let expEarned = 5;
       let isCrit = false;
