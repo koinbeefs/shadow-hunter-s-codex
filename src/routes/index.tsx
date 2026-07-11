@@ -292,6 +292,7 @@ function App() {
         {view === "stats" && <StatsView game={game} />}
         {view === "history" && <HistoryView game={game} chapters={chapters} onOpen={openReader} />}
         {view === "inventory" && <InventoryView game={game} />}
+        {view === "shadow-army" && <ShadowArmyView game={game} />}
         {view === "achievements" && <AchievementsView game={game} />}
         {view === "shop" && <ShopView game={game} />}
       </main>
