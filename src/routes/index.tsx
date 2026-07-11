@@ -38,6 +38,7 @@ import {
   deleteChapter,
   updateChapterMeta,
   parseFilename,
+  migrateToVersion3,
   type Chapter,
 } from "@/lib/db";
 import { useGameState, expForNextLevel, SHOP_ITEMS, getStatsWithGear } from "@/lib/store";
@@ -199,6 +200,9 @@ function App() {
   useEffect(() => {
     if (!game.hydrated) return;
     (async () => {
+      // Run migration to clear sample chapters
+      await migrateToVersion3();
+
       try {
         const res = await fetch("/chapters/metadata.json");
         if (!res.ok) return;

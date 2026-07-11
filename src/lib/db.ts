@@ -1,6 +1,6 @@
 // Simple IndexedDB wrapper for storing chapter images as blobs.
 const DB_NAME = "sl_reader";
-const DB_VERSION = 2; // Incremented to force clear of old sample chapters
+const DB_VERSION = 3; // Incremented to force complete database deletion
 const PAGES_STORE = "pages"; // { id, chapterId, order, blob }
 const CHAPTERS_STORE = "chapters"; // { id, title, volume, order, pageCount, createdAt, isPreloaded, preloadedPages }
 
@@ -29,8 +29,8 @@ function openDB(): Promise<IDBDatabase> {
       const db = req.result;
       const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
-      // Clear old data when upgrading from version 1
-      if (oldVersion < 2) {
+      // Delete old stores when upgrading from version < 3 to clear sample chapters
+      if (oldVersion < 3) {
         if (db.objectStoreNames.contains(CHAPTERS_STORE)) {
           db.deleteObjectStore(CHAPTERS_STORE);
         }
@@ -171,4 +171,28 @@ export async function clearAllData(): Promise<void> {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+// Migration: Clear sample chapters on first load after version upgrade
+export async function migrateToVersion3(): Promise<void> {
+  const migrationKey = "sl_reader_migration_v3";
+  if (typeof window === "undefined") return;
+  if (localStorage.getItem(migrationKey) === "done") return;
+
+  const chapters = await listChapters();
+  const sampleChapters = chapters.filter(c =>
+    c.title.includes("Sample Chapter") ||
+    c.title.includes("The Weakest Hunter") ||
+    c.title.includes("Double Dungeon") ||
+    c.title.includes("The System")
+  );
+
+  if (sampleChapters.length > 0) {
+    console.log("[migration] Clearing sample chapters:", sampleChapters.length);
+    for (const ch of sampleChapters) {
+      await deleteChapter(ch.id);
+    }
+  }
+
+  localStorage.setItem(migrationKey, "done");
 }
