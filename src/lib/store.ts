@@ -325,19 +325,8 @@ export function useGameState(notify: Notify) {
             message: `[SYSTEM] Level up! You are now level ${level}. Unused Stat Points +5. Earned ${lvlUpGoldReward} Gold.`,
           });
 
-          // shadow unlock every 3 levels
-          if (level % 3 === 0) {
-            const next = SHADOWS_POOL[shadows.length % SHADOWS_POOL.length];
-            if (!shadows.includes(next)) {
-              shadows = [...shadows, next];
-              newActivity.unshift({
-                id: crypto.randomUUID(),
-                ts: Date.now(),
-                message: `[SYSTEM] Shadow "${next}" has joined your army.`,
-              });
-              notify(`Shadow ${next} extracted`, "info");
-            }
-          }
+          // Shadow soldiers are arisen through story progression, not level.
+          // See recordPageRead where finished chapters trigger unlocks.
         }
         
         // main quest checks
