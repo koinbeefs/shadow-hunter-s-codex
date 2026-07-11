@@ -99,9 +99,23 @@ export function getStatsWithGear(state: GameState) {
   return stats;
 }
 
-const SHADOWS_POOL = [
-  "Igris", "Iron", "Tank", "Tusk", "Beru", "Bellion", "Kaisel", "Greed", "Kamish", "Fangs",
+// Shadow soldiers unlock when the reader completes the manhwa chapter where
+// Sung Jin-Woo canonically arises them (approximate canon numbers). The order
+// matters and drives the reveal sequence in Shadow Army.
+export const SHADOW_UNLOCKS: { name: string; chapter: number; arc: string }[] = [
+  { name: "Igris",   chapter: 46,  arc: "Cartenon Demon Castle" },
+  { name: "Iron",    chapter: 48,  arc: "D-Rank Dungeon Break" },
+  { name: "Tank",    chapter: 55,  arc: "Alpha Ice Bear Raid" },
+  { name: "Kaisel",  chapter: 82,  arc: "Kamish Raid — Sky Dragon" },
+  { name: "Beru",    chapter: 110, arc: "Jeju Island — Ant King" },
+  { name: "Greed",   chapter: 128, arc: "US Hunters Confrontation" },
+  { name: "Fangs",   chapter: 128, arc: "US Hunters Confrontation" },
+  { name: "Tusk",    chapter: 137, arc: "High Orc Shaman" },
+  { name: "Bellion", chapter: 158, arc: "Monarch's Domain" },
+  { name: "Kamish",  chapter: 178, arc: "Final Battle Summon" },
 ];
+
+const SHADOWS_POOL = SHADOW_UNLOCKS.map(s => s.name);
 
 export function expForNextLevel(level: number) {
   return Math.floor(100 * Math.pow(1.25, level - 1));
