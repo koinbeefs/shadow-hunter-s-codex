@@ -1105,9 +1105,13 @@ function ReaderView({
     if (!pages.length) return;
 
     const handleScroll = () => {
-      if (!ignoreScroll.current) {
-        setShowControls(false);
-      }
+      // While the initial scroll restore is running (or right after opening a
+      // chapter), the browser may still be at the previous chapter's scroll
+      // position. Skip recording so we don't wrongly mark the last page as
+      // read and jump progress to 100%.
+      if (ignoreScroll.current) return;
+
+      setShowControls(false);
 
       const elements = document.querySelectorAll("[data-page-el]");
       if (!elements.length) return;
@@ -1119,20 +1123,18 @@ function ReaderView({
       elements.forEach((el) => {
         const rect = el.getBoundingClientRect();
         const idx = Number((el as HTMLElement).dataset.index);
-
-        // Calculate distance from center of page element to center of screen
         const elementMid = rect.top + rect.height / 2;
         const dist = Math.abs(elementMid - midY);
-
         if (dist < minDistance) {
           minDistance = dist;
           activeIdx = idx;
         }
       });
 
-      // If we are scrolled all the way to the bottom of the page, force last page active
+      // Only mark last-page-active when clearly at the bottom AND user has
+      // actually scrolled past the first page (prevents false 100% on open).
       const isAtBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 20);
-      if (isAtBottom) {
+      if (isAtBottom && window.scrollY > window.innerHeight * 0.5) {
         activeIdx = pages.length - 1;
       }
 
@@ -1146,10 +1148,13 @@ function ReaderView({
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    // Run once on load/render to set initial state
-    handleScroll();
+    // Delay the initial evaluation until after scroll restore settles.
+    const initId = setTimeout(handleScroll, 500);
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(initId);
+    };
   }, [pages, onPage]);
 
   // Auto scroll
