@@ -74,6 +74,7 @@ type View =
   | "stats"
   | "history"
   | "inventory"
+  | "shadow-army"
   | "achievements"
   | "shop";
 
