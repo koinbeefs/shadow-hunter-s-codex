@@ -25,8 +25,20 @@ export type PageRecord = {
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
+    req.onupgradeneeded = (event) => {
       const db = req.result;
+      const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
+
+      // Clear old data when upgrading from version 1
+      if (oldVersion < 2) {
+        if (db.objectStoreNames.contains(CHAPTERS_STORE)) {
+          db.deleteObjectStore(CHAPTERS_STORE);
+        }
+        if (db.objectStoreNames.contains(PAGES_STORE)) {
+          db.deleteObjectStore(PAGES_STORE);
+        }
+      }
+
       if (!db.objectStoreNames.contains(CHAPTERS_STORE)) {
         db.createObjectStore(CHAPTERS_STORE, { keyPath: "id" });
       }
