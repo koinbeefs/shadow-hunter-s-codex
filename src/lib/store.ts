@@ -440,7 +440,10 @@ export function useGameState(notify: Notify) {
         let gold = s.gold;
         const newActivity = [...s.activity];
 
-        // Raid Clear Reward: 20 Gold on Chapter completion
+        let shadows = s.shadows;
+
+        // Raid Clear Reward: 20 Gold on Chapter completion + arise any shadow
+        // whose canonical chapter threshold is now reached.
         if (finished && !wasFinished) {
           goldEarned = 20;
           gold += goldEarned;
@@ -449,6 +452,20 @@ export function useGameState(notify: Notify) {
             ts: Date.now(),
             message: `[SYSTEM] Raid Cleared! (Chapter ${chaptersRead} completed). +20 Gold.`,
           });
+
+          if (typeof chapterOrder === "number" && chapterOrder > 0) {
+            for (const su of SHADOW_UNLOCKS) {
+              if (chapterOrder >= su.chapter && !shadows.includes(su.name)) {
+                shadows = [...shadows, su.name];
+                newActivity.unshift({
+                  id: crypto.randomUUID(),
+                  ts: Date.now(),
+                  message: `[SYSTEM] ARISE. Shadow "${su.name}" has answered the Monarch. (${su.arc})`,
+                });
+                notify(`ARISE — ${su.name}`, "levelup");
+              }
+            }
+          }
         }
 
         // Quest progress evaluations
