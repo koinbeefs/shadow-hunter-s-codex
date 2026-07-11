@@ -48,6 +48,7 @@ export type GameState = {
   questsRefreshedAt: number;
   activity: ActivityLog[];
   progress: Record<string, ChapterProgress>;
+  lastReadChapter: string | null; // ID of last chapter read
   onboarded: boolean;
 };
 
@@ -186,6 +187,7 @@ function initialState(): GameState {
       { id: "boot", ts: 0, message: "[SYSTEM] You have been chosen. Welcome, Player." },
     ],
     progress: {},
+    lastReadChapter: null,
     onboarded: false,
   };
 }
@@ -407,7 +409,7 @@ export function useGameState(notify: Notify) {
         const newProgressRec: ChapterProgress = {
           page,
           total,
-          finished: finished || !!wasFinished,
+          finished,
           lastReadAt: Date.now(),
         };
         const newProgress = { ...s.progress, [chapterId]: newProgressRec };
@@ -487,6 +489,7 @@ export function useGameState(notify: Notify) {
           hp: Math.max(0, s.hp - hpLoss),
           mp: Math.max(0, s.mp - mpLoss),
           fatigue: Math.min(100, s.fatigue + fatigueGain),
+          lastReadChapter: chapterId,
           activity: newActivity.slice(0, 60),
         };
       });

@@ -256,6 +256,7 @@ function App() {
           <LibraryView
             chapters={chapters}
             progress={game.state.progress}
+            lastReadChapter={game.state.lastReadChapter}
             onOpen={openReader}
             onImport={async () => setRefreshTick((n) => n + 1)}
             onDelete={async (id) => {
@@ -628,6 +629,7 @@ function StatLine({
 function LibraryView({
   chapters,
   progress,
+  lastReadChapter,
   onOpen,
   onImport,
   onDelete,
@@ -635,6 +637,7 @@ function LibraryView({
 }: {
   chapters: Chapter[];
   progress: Record<string, { page: number; total: number; finished: boolean; lastReadAt: number }>;
+  lastReadChapter: string | null;
   onOpen: (id: string) => void;
   onImport: () => Promise<void>;
   onDelete: (id: string) => Promise<void>;
@@ -900,7 +903,17 @@ function LibraryView({
   return (
     <div className="space-y-4">
       <SysPanel>
-        <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow">LIBRARY</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow">LIBRARY</h2>
+          {lastReadChapter && chapters.find(c => c.id === lastReadChapter) && (
+            <button
+              onClick={() => onOpen(lastReadChapter)}
+              className="text-xs sys-text-gold system-font tracking-widest hover:opacity-70 flex items-center gap-1"
+            >
+              <Bookmark className="w-3 h-3" /> RESUME READING
+            </button>
+          )}
+        </div>
       </SysPanel>
 
       {Object.entries(grouped)
