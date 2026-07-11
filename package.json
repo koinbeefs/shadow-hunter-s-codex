@@ -7,10 +7,9 @@
     "dev": "node compress.js && vite dev",
     "prebuild": "node compress.js",
     "build": "vite build",
-    "postbuild": "node generate-index.js",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "cap:sync": "npm run build ; npx cap sync",
+    "cap:sync": "node compress.js && vite build && node generate-index.js && npx cap sync",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
