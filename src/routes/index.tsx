@@ -1771,66 +1771,70 @@ function HistoryView({
 }
 
 // ---------- Inventory ----------
+// ---------- Shadow lore (shared) ----------
+const SHADOW_LORE: Record<string, { rank: string; quote: string; desc: string }> = {
+  Igris: {
+    rank: "Commander Grade",
+    desc: "Knight Commander of the Red Knights. The first loyal blade to kneel before the Monarch.",
+    quote: "My sword is yours, my liege. Lead me into battle.",
+  },
+  Iron: {
+    rank: "Knight Grade",
+    desc: "Formed from the shadow of the hunter Kim Chul. Heavy shield fighter.",
+    quote: "*Roars aggressively while banging shields together!*",
+  },
+  Tank: {
+    rank: "Knight Grade",
+    desc: "The Alpha Ice Bear shadow beast. Relentless pack warrior.",
+    quote: "*Heavy bestial breathing and thunderous steps.*",
+  },
+  Tusk: {
+    rank: "Elite Knight Grade",
+    desc: "High Orc Shaman leader. Masters gravity and destructive magic.",
+    quote: "Your power flows through my incantations, Monarch.",
+  },
+  Beru: {
+    rank: "Marshal Grade",
+    desc: "The Ant King of Jeju Island. Extremely fast assassin shadow.",
+    quote: "MY KING! Order me, and I shall consume all your enemies!",
+  },
+  Bellion: {
+    rank: "Grand Marshal Grade",
+    desc: "Commander of the former Shadow Monarch's original shadow army.",
+    quote: "I have waited centuries to serve you, my liege.",
+  },
+  Kaisel: {
+    rank: "Knight Grade",
+    desc: "The Sky Dragon shadow mount. Flight transport beast.",
+    quote: "*High-pitched draconic screeching into the clouds.*",
+  },
+  Greed: {
+    rank: "Elite Knight Grade",
+    desc: "Formed from the shadow of the hunter Hwang Dong-Su.",
+    quote: "I will crush anyone who dares disrespect the Monarch.",
+  },
+  Kamish: {
+    rank: "Dragon Grade",
+    desc: "The greatest dragon shadow, briefly summoned with overwhelming authority.",
+    quote: "Your magic feels... warm, master of shadows.",
+  },
+  Fangs: {
+    rank: "Elite Knight Grade",
+    desc: "Giant orc shadow warrior wielding massive dual-axes.",
+    quote: "*Deep grunting as weapons slice through steel.*",
+  },
+};
+
+// ---------- Inventory (items only) ----------
 function InventoryView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state } = game;
   const useItem = (game as any).useItem;
-  const [tab, setTab] = useState<"shadows" | "items">("shadows");
-  const shadowSlots = Array.from({ length: 12 }).map((_, i) => state.shadows[i] ?? null);
-  const itemSlots = Array.from({ length: 12 }).map((_, i) => state.inventory[i] ?? null);
+  const itemSlots = Array.from({ length: 16 }).map((_, i) => state.inventory[i] ?? null);
 
-  const [activeShadow, setActiveShadow] = useState<string | null>(null);
-
-  const SHADOW_LORE: Record<string, { rank: string; quote: string; desc: string }> = {
-    Igris: {
-      rank: "Commander Grade",
-      desc: "Knight Commander of the Red Knights. First loyal commander of the Monarch.",
-      quote: "My sword is yours, my liege. Lead me into battle."
-    },
-    Iron: {
-      rank: "Knight Grade",
-      desc: "Formed from the shadow of the hunter Kim Chul. Heavy shield fighter.",
-      quote: "*Roars aggressively while banging shields together!*"
-    },
-    Tank: {
-      rank: "Knight Grade",
-      desc: "The Alpha Ice Bear shadow beast. Relentless pack warrior.",
-      quote: "*Heavy bestial breathing and thunderous steps.*"
-    },
-    Tusk: {
-      rank: "Elite Knight Grade",
-      desc: "High Orc Shaman leader. Masters gravity and destructive magic.",
-      quote: "Your power flows through my incantations, Monarch."
-    },
-    Beru: {
-      rank: "Marshal Grade",
-      desc: "The Ant King of Jeju Island. Extremely fast assassin shadow.",
-      quote: "MY KING! Order me, and I shall consume all your enemies!"
-    },
-    Bellion: {
-      rank: "Grand Marshal Grade",
-      desc: "Commander of the former Shadow Monarch's original shadow army.",
-      quote: "I have waited centuries to serve you, my liege."
-    },
-    Kaisel: {
-      rank: "Knight Grade",
-      desc: "The Sky Dragon shadow mount. Flight transport beast.",
-      quote: "*High-pitched draconic screeching into the clouds.*"
-    },
-    Greed: {
-      rank: "Elite Knight Grade",
-      desc: "Formed from the shadow of the hunter Hwang Dong-Su.",
-      quote: "I will crush anyone who dares disrespect the Monarch."
-    },
-    Kamish: {
-      rank: "Dragon Grade",
-      desc: "The greatest dragon shadow, briefly summoned with overwhelming authority.",
-      quote: "Your magic feels... warm, master of shadows."
-    },
-    Fangs: {
-      rank: "Elite Knight Grade",
-      desc: "Giant orc shadow warrior wielding massive dual-axes.",
-      quote: "*Deep grunting as weapons slice through steel.*"
-    }
+  const isEquipped = (itemName: string) => {
+    const gear = state.equippedGear;
+    if (!gear) return false;
+    return gear.weapon === itemName || gear.armor === itemName || gear.accessory === itemName;
   };
 
   const getItemIcon = (name: string) => {
@@ -1845,160 +1849,156 @@ function InventoryView({ game }: { game: ReturnType<typeof useGameState> }) {
     return <Sparkles className="w-8 h-8 text-cyan-glow" />;
   };
 
-  const isEquipped = (itemName: string) => {
-    const gear = state.equippedGear;
-    if (!gear) return false;
-    return gear.weapon === itemName || gear.armor === itemName || gear.accessory === itemName;
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <button
-          onClick={() => {
-            beep(720, 0.05);
-            setTab("shadows");
-            setActiveShadow(null);
-          }}
-          className={`flex-1 py-2 text-xs system-font tracking-widest border transition-all ${tab === "shadows" ? "border-cyan-glow bg-cyan-glow/10 text-cyan-glow" : "border-cyan-glow/30 text-cyan-glow/60"
-            }`}
-        >
-          SHADOW ARMY ({state.shadows.length})
-        </button>
-        <button
-          onClick={() => {
-            beep(720, 0.05);
-            setTab("items");
-            setActiveShadow(null);
-          }}
-          className={`flex-1 py-2 text-xs system-font tracking-widest border transition-all ${tab === "items" ? "border-cyan-glow bg-cyan-glow/10 text-cyan-glow" : "border-cyan-glow/30 text-cyan-glow/60"
-            }`}
-        >
-          ITEM INVENTORY ({state.inventory.length})
-        </button>
-      </div>
-
-      {tab === "shadows" ? (
-        <div className="space-y-4">
-          <SysPanel>
-            <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow text-sm">SHADOW ARMY</h2>
-            <p className="text-[10px] text-muted-foreground system-font tracking-wide mt-1">
-              Extract shadow soldiers as you level up. Every 3 levels expands your ranks. Tap any unlocked soldier to Arise them!
-            </p>
-          </SysPanel>
-
-          {activeShadow && (
-            <SysPanel className="border-[color:var(--color-gold-glow)]/70 animate-sys-slide-in relative">
-              <button
-                onClick={() => setActiveShadow(null)}
-                className="absolute top-2 right-2 text-xs text-cyan-glow/60 hover:text-cyan-glow"
-              >
-                CLOSE
-              </button>
-              <div className="flex gap-3">
-                <Ghost className="w-12 h-12 text-cyan-glow animate-sys-pulse shrink-0" />
-                <div>
-                  <h4 className="system-font text-sm text-cyan-glow tracking-[0.2em] font-semibold">{activeShadow.toUpperCase()}</h4>
-                  <div className="text-[9px] sys-text-gold system-font tracking-wider mt-0.5">
-                    {SHADOW_LORE[activeShadow]?.rank || "Shadow Soldier"}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground system-font mt-2 leading-relaxed">
-                    {SHADOW_LORE[activeShadow]?.desc || "A faithful shadow soldier aligned to serve the Monarch."}
-                  </p>
-                  <div className="mt-3 border-l border-cyan-glow/40 pl-2 text-[10px] italic text-cyan-glow/85">
-                    "{SHADOW_LORE[activeShadow]?.quote || "ARISE."}"
-                  </div>
-                </div>
-              </div>
-            </SysPanel>
-          )}
-
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {shadowSlots.map((s, i) => (
-              <button
-                key={i}
-                disabled={!s}
-                onClick={() => {
-                  if (s) {
-                    beep(440, 0.1);
-                    setActiveShadow(s);
-                  }
-                }}
-                className={`sys-panel aspect-square flex flex-col items-center justify-center transition-all ${s
-                  ? "border-cyan-glow/40 hover:border-cyan-glow hover:bg-cyan-glow/5"
-                  : "opacity-30 border-cyan-glow/10 cursor-default"
-                  }`}
-              >
-                <Ghost className={`w-8 h-8 ${s ? "text-cyan-glow animate-sys-pulse" : "text-cyan-glow/40"}`} />
-                <div className="text-[9px] system-font tracking-widest mt-2 text-cyan-glow truncate w-full text-center px-1 font-semibold">
-                  {s ?? "LOCKED"}
-                </div>
-              </button>
-            ))}
-          </div>
+      <SysPanel>
+        <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow text-sm">INVENTORY</h2>
+        <p className="text-[10px] text-muted-foreground system-font tracking-wide mt-1">
+          Consumables restore your vitals; weapons, armor and accessories can be equipped from your Status screen.
+        </p>
+        <div className="mt-3 flex gap-4 text-[10px] system-font tracking-widest">
+          <span className="text-cyan-glow/70">SLOTS <span className="sys-text-gold">{state.inventory.length}/16</span></span>
+          <span className="text-cyan-glow/70">GOLD <span className="sys-text-gold">{state.gold}</span></span>
         </div>
-      ) : (
-        <div className="space-y-4">
-          <SysPanel>
-            <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow text-sm">ITEM SLOTS</h2>
-            <p className="text-[10px] text-muted-foreground system-font tracking-wide mt-1">
-              Tap any consumable item to activate its restoration effects. Tap weapons/armor to equip them to your Profile.
-            </p>
-          </SysPanel>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {itemSlots.map((item, i) => {
-              const equipped = item ? isEquipped(item) : false;
-              const itemDef = item ? SHOP_ITEMS.find(x => x.name === item) : null;
-              const isConsumable = itemDef?.type === "consumable";
-              return (
-                <button
-                  key={i}
-                  disabled={!item}
-                  onClick={() => {
-                    if (item) {
-                      beep(600, 0.05);
-                      useItem(item);
-                    }
-                  }}
-                  className={`sys-panel aspect-square flex flex-col items-center justify-center transition-all relative ${equipped
-                    ? "border-[color:var(--color-gold-glow)] bg-cyan-glow/5 shadow-[0_0_10px_rgba(212,175,55,0.2)]"
-                    : item
-                      ? "border-cyan-glow/45 hover:border-cyan-glow hover:bg-cyan-glow/5"
-                      : "opacity-30 border-cyan-glow/10 cursor-default"
-                    }`}
-                >
-                  {item ? (
-                    <>
-                      {equipped && (
-                        <div className="absolute top-1 right-1 text-[7px] system-font bg-cyan-glow/20 px-1 py-0.5 rounded text-cyan-glow">
-                          EQ
-                        </div>
-                      )}
-                      {getItemIcon(item)}
-                      <div className="text-[9px] system-font tracking-wider mt-2 text-cyan-glow text-center truncate px-1 w-full font-semibold">
-                        {item}
-                      </div>
-                      <div className="text-[7px] text-muted-foreground system-font mt-0.5 uppercase tracking-widest text-center truncate w-full px-1">
-                        {isConsumable ? "Use" : "Equip"}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-8 h-8 text-cyan-glow/25" />
-                      <div className="text-[10px] system-font tracking-widest mt-2 text-cyan-glow/40">
-                        EMPTY
-                      </div>
-                    </>
+      </SysPanel>
+
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+        {itemSlots.map((item, i) => {
+          const equipped = item ? isEquipped(item) : false;
+          const itemDef = item ? SHOP_ITEMS.find((x) => x.name === item) : null;
+          const isConsumable = itemDef?.type === "consumable";
+          return (
+            <button
+              key={i}
+              disabled={!item}
+              onClick={() => {
+                if (item) {
+                  beep(600, 0.05);
+                  useItem(item);
+                }
+              }}
+              className={`sys-panel aspect-square flex flex-col items-center justify-center transition-all relative ${equipped
+                  ? "border-[color:var(--color-gold-glow)] bg-cyan-glow/5 shadow-[0_0_10px_rgba(212,175,55,0.2)]"
+                  : item
+                    ? "border-cyan-glow/45 hover:border-cyan-glow hover:bg-cyan-glow/5"
+                    : "opacity-30 border-cyan-glow/10 cursor-default"
+                }`}
+            >
+              {item ? (
+                <>
+                  {equipped && (
+                    <div className="absolute top-1 right-1 text-[7px] system-font bg-cyan-glow/20 px-1 py-0.5 rounded text-cyan-glow">
+                      EQ
+                    </div>
                   )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                  {getItemIcon(item)}
+                  <div className="text-[9px] system-font tracking-wider mt-2 text-cyan-glow text-center truncate px-1 w-full font-semibold">
+                    {item}
+                  </div>
+                  <div className="text-[7px] text-muted-foreground system-font mt-0.5 uppercase tracking-widest text-center truncate w-full px-1">
+                    {isConsumable ? "Use" : "Equip"}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-8 h-8 text-cyan-glow/25" />
+                  <div className="text-[10px] system-font tracking-widest mt-2 text-cyan-glow/40">
+                    EMPTY
+                  </div>
+                </>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
+// ---------- Shadow Army (chapter-gated) ----------
+function ShadowArmyView({ game }: { game: ReturnType<typeof useGameState> }) {
+  const { state } = game;
+  const [active, setActive] = useState<string | null>(null);
+  const total = SHADOW_UNLOCKS.length;
+  const owned = state.shadows.length;
+
+  return (
+    <div className="space-y-4">
+      <SysPanel className="border-[color:var(--color-gold-glow)]/40">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow text-sm">SHADOW ARMY</h2>
+            <p className="text-[10px] text-muted-foreground system-font tracking-wide mt-1 leading-relaxed">
+              Every soldier is arisen at the exact chapter Sung Jin-Woo extracts them in the manhwa.
+              Reach a canonical chapter and finish it to hear the System whisper — "ARISE."
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[10px] system-font tracking-widest text-cyan-glow/70">ARISEN</div>
+            <div className="text-2xl system-font sys-text-gold font-bold">{owned}/{total}</div>
+          </div>
+        </div>
+      </SysPanel>
+
+      {active && (
+        <SysPanel className="border-[color:var(--color-gold-glow)]/70 animate-sys-slide-in relative">
+          <button
+            onClick={() => setActive(null)}
+            className="absolute top-2 right-2 text-xs text-cyan-glow/60 hover:text-cyan-glow"
+          >
+            CLOSE
+          </button>
+          <div className="flex gap-3">
+            <Ghost className="w-12 h-12 text-cyan-glow animate-sys-pulse shrink-0" />
+            <div>
+              <h4 className="system-font text-sm text-cyan-glow tracking-[0.2em] font-semibold">{active.toUpperCase()}</h4>
+              <div className="text-[9px] sys-text-gold system-font tracking-wider mt-0.5">
+                {SHADOW_LORE[active]?.rank || "Shadow Soldier"}
+              </div>
+              <p className="text-[10px] text-muted-foreground system-font mt-2 leading-relaxed">
+                {SHADOW_LORE[active]?.desc}
+              </p>
+              <div className="mt-3 border-l border-cyan-glow/40 pl-2 text-[10px] italic text-cyan-glow/85">
+                "{SHADOW_LORE[active]?.quote}"
+              </div>
+            </div>
+          </div>
+        </SysPanel>
+      )}
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {SHADOW_UNLOCKS.map((su) => {
+          const unlocked = state.shadows.includes(su.name);
+          return (
+            <button
+              key={su.name}
+              disabled={!unlocked}
+              onClick={() => {
+                if (unlocked) {
+                  beep(440, 0.1);
+                  setActive(su.name);
+                }
+              }}
+              className={`sys-panel p-3 flex flex-col items-center text-center transition-all ${unlocked
+                  ? "border-cyan-glow/50 hover:border-cyan-glow hover:bg-cyan-glow/5"
+                  : "opacity-60 border-cyan-glow/10 cursor-default"
+                }`}
+            >
+              <Ghost className={`w-10 h-10 ${unlocked ? "text-cyan-glow animate-sys-pulse" : "text-cyan-glow/25"}`} />
+              <div className={`text-[10px] system-font tracking-widest mt-2 font-semibold ${unlocked ? "text-cyan-glow" : "text-cyan-glow/40"}`}>
+                {unlocked ? su.name.toUpperCase() : "??????"}
+              </div>
+              <div className="text-[8px] system-font tracking-wider mt-1 text-muted-foreground uppercase">
+                {unlocked ? su.arc : `Requires Ch. ${su.chapter}`}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 // ---------- Achievements ----------
 function AchievementsView({ game }: { game: ReturnType<typeof useGameState> }) {
