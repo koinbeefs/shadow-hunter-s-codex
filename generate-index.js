@@ -30,7 +30,7 @@ const html = `<!DOCTYPE html>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#0a1224" />
-    <title>System — Solo Leveling Reader</title>
+    <title>Solo Leveling Reader</title>
     <link rel="stylesheet" href="/assets/${cssFile}">
   </head>
   <body>

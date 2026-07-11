@@ -49,13 +49,13 @@ import jinwoo from "@/assets/Jinwoo.gif";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "System — Solo Leveling Reader" },
+      { title: "Solo Leveling Reader" },
       {
         name: "description",
         content:
           "Offline Solo Leveling manhwa reader with a System-style gamified progress tracker. Level up as you read.",
       },
-      { property: "og:title", content: "System — Solo Leveling Reader" },
+      { property: "og:title", content: "Solo Leveling Reader" },
       {
         property: "og:description",
         content:

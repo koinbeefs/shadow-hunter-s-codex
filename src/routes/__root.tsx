@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
       },
-      { title: "System — Solo Leveling Reader" },
+      { title: "Solo Leveling Reader" },
       {
         name: "description",
         content:
@@ -90,8 +90,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#0a1224" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "System" },
-      { property: "og:title", content: "System — Solo Leveling Reader" },
+      { name: "apple-mobile-web-app-title", content: "Solo Leveling Reader" },
+      { property: "og:title", content: "Solo Leveling Reader" },
       {
         property: "og:description",
         content:
