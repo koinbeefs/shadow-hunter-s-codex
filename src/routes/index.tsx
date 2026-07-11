@@ -1233,7 +1233,28 @@ function ReaderView({
             [ LOADING PAGES... ]
           </div>
         )}
+        {pages.length > 0 && progress?.finished && nextChapter && (
+          <div className="mt-8 mb-6 sys-panel sys-panel-corners p-5 text-center border-[color:var(--color-gold-glow)]/70 animate-sys-slide-in">
+            <div className="text-[10px] tracking-[0.4em] sys-text-gold system-font mb-1">
+              [ CHAPTER CLEARED ]
+            </div>
+            <div className="text-xs text-cyan-glow/70 system-font tracking-widest mb-4">
+              GATE UNLOCKED — Proceed to the next raid.
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.scrollTo(0, 0);
+                onChapterChange(nextChapter.id);
+              }}
+              className="sys-btn !py-3 !px-6 w-full !border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)] animate-sys-pulse shadow-[0_0_20px_rgba(212,175,55,0.5)] system-font tracking-[0.3em]"
+            >
+              ▶ NEXT CHAPTER
+            </button>
+          </div>
+        )}
       </div>
+
 
       {isExhausted && (
         <div className="min-h-[80vh] flex items-center justify-center p-4">
