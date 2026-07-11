@@ -428,7 +428,10 @@ function HomeView({ game, onGoto }: { game: ReturnType<typeof useGameState>; onG
 
   // PWA install prompt detection
   useEffect(() => {
+    console.log("[pwa] checking installability...");
+
     const handler = (e: Event) => {
+      console.log("[pwa] beforeinstallprompt event fired");
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallPrompt(true);
@@ -437,7 +440,9 @@ function HomeView({ game, onGoto }: { game: ReturnType<typeof useGameState>; onG
     window.addEventListener("beforeinstallprompt", handler);
 
     // Check if already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    console.log("[pwa] is standalone:", isStandalone);
+    if (isStandalone) {
       setShowInstallPrompt(false);
     }
 

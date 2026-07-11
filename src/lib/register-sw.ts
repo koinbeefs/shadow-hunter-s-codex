@@ -26,6 +26,8 @@ export async function registerServiceWorker(): Promise<void> {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
 
+  console.log("[sw] checking if should skip:", shouldSkip());
+
   if (shouldSkip()) {
     // Unregister any stale worker if guards apply (e.g. viewing preview).
     try {
@@ -38,7 +40,8 @@ export async function registerServiceWorker(): Promise<void> {
   }
 
   try {
-    await navigator.serviceWorker.register(SW_PATH, { scope: "/" });
+    const reg = await navigator.serviceWorker.register(SW_PATH, { scope: "/" });
+    console.log("[sw] registered successfully:", reg);
   } catch (err) {
     console.warn("[sw] registration failed", err);
   }
