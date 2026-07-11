@@ -99,9 +99,23 @@ export function getStatsWithGear(state: GameState) {
   return stats;
 }
 
-const SHADOWS_POOL = [
-  "Igris", "Iron", "Tank", "Tusk", "Beru", "Bellion", "Kaisel", "Greed", "Kamish", "Fangs",
+// Shadow soldiers unlock when the reader completes the manhwa chapter where
+// Sung Jin-Woo canonically arises them (approximate canon numbers). The order
+// matters and drives the reveal sequence in Shadow Army.
+export const SHADOW_UNLOCKS: { name: string; chapter: number; arc: string }[] = [
+  { name: "Igris",   chapter: 46,  arc: "Cartenon Demon Castle" },
+  { name: "Iron",    chapter: 48,  arc: "D-Rank Dungeon Break" },
+  { name: "Tank",    chapter: 55,  arc: "Alpha Ice Bear Raid" },
+  { name: "Kaisel",  chapter: 82,  arc: "Kamish Raid — Sky Dragon" },
+  { name: "Beru",    chapter: 110, arc: "Jeju Island — Ant King" },
+  { name: "Greed",   chapter: 128, arc: "US Hunters Confrontation" },
+  { name: "Fangs",   chapter: 128, arc: "US Hunters Confrontation" },
+  { name: "Tusk",    chapter: 137, arc: "High Orc Shaman" },
+  { name: "Bellion", chapter: 158, arc: "Monarch's Domain" },
+  { name: "Kamish",  chapter: 178, arc: "Final Battle Summon" },
 ];
+
+const SHADOWS_POOL = SHADOW_UNLOCKS.map(s => s.name);
 
 export function expForNextLevel(level: number) {
   return Math.floor(100 * Math.pow(1.25, level - 1));
@@ -311,19 +325,8 @@ export function useGameState(notify: Notify) {
             message: `[SYSTEM] Level up! You are now level ${level}. Unused Stat Points +5. Earned ${lvlUpGoldReward} Gold.`,
           });
 
-          // shadow unlock every 3 levels
-          if (level % 3 === 0) {
-            const next = SHADOWS_POOL[shadows.length % SHADOWS_POOL.length];
-            if (!shadows.includes(next)) {
-              shadows = [...shadows, next];
-              newActivity.unshift({
-                id: crypto.randomUUID(),
-                ts: Date.now(),
-                message: `[SYSTEM] Shadow "${next}" has joined your army.`,
-              });
-              notify(`Shadow ${next} extracted`, "info");
-            }
-          }
+          // Shadow soldiers are arisen through story progression, not level.
+          // See recordPageRead where finished chapters trigger unlocks.
         }
         
         // main quest checks
@@ -397,7 +400,7 @@ export function useGameState(notify: Notify) {
   );
 
   const recordPageRead = useCallback(
-    (chapterId: string, page: number, total: number, readingMs = 0) => {
+    (chapterId: string, page: number, total: number, readingMs = 0, chapterOrder?: number) => {
       let goldEarned = 0;
       let expEarned = 5;
       let isCrit = false;
@@ -437,7 +440,10 @@ export function useGameState(notify: Notify) {
         let gold = s.gold;
         const newActivity = [...s.activity];
 
-        // Raid Clear Reward: 20 Gold on Chapter completion
+        let shadows = s.shadows;
+
+        // Raid Clear Reward: 20 Gold on Chapter completion + arise any shadow
+        // whose canonical chapter threshold is now reached.
         if (finished && !wasFinished) {
           goldEarned = 20;
           gold += goldEarned;
@@ -446,6 +452,20 @@ export function useGameState(notify: Notify) {
             ts: Date.now(),
             message: `[SYSTEM] Raid Cleared! (Chapter ${chaptersRead} completed). +20 Gold.`,
           });
+
+          if (typeof chapterOrder === "number" && chapterOrder > 0) {
+            for (const su of SHADOW_UNLOCKS) {
+              if (chapterOrder >= su.chapter && !shadows.includes(su.name)) {
+                shadows = [...shadows, su.name];
+                newActivity.unshift({
+                  id: crypto.randomUUID(),
+                  ts: Date.now(),
+                  message: `[SYSTEM] ARISE. Shadow "${su.name}" has answered the Monarch. (${su.arc})`,
+                });
+                notify(`ARISE — ${su.name}`, "levelup");
+              }
+            }
+          }
         }
 
         // Quest progress evaluations
@@ -490,6 +510,7 @@ export function useGameState(notify: Notify) {
           mp: Math.max(0, s.mp - mpLoss),
           fatigue: Math.min(100, s.fatigue + fatigueGain),
           lastReadChapter: chapterId,
+          shadows,
           activity: newActivity.slice(0, 60),
         };
       });
