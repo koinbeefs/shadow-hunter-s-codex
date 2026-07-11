@@ -510,6 +510,7 @@ export function useGameState(notify: Notify) {
           mp: Math.max(0, s.mp - mpLoss),
           fatigue: Math.min(100, s.fatigue + fatigueGain),
           lastReadChapter: chapterId,
+          shadows,
           activity: newActivity.slice(0, 60),
         };
       });
