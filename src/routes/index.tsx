@@ -273,6 +273,7 @@ function App() {
         )}
         {view === "reader" && readingChapter && (
           <ReaderView
+            key={readingChapter}
             chapterId={readingChapter}
             chapters={chapters}
             game={game}
@@ -1179,7 +1180,7 @@ function ReaderView({
             <div className="text-[10px] system-font tracking-widest text-cyan-glow/70">
               PAGE {currentPage + 1} / {pages.length || "…"}
             </div>
-            <SysBar value={currentPage + 1} max={Math.max(pages.length, 1)} color="gold" />
+            <SysBar value={pages.length ? currentPage + 1 : 0} max={pages.length || 1} color="gold" />
           </div>
           <span className="text-xs sys-text-gold system-font">{pct}%</span>
         </div>
