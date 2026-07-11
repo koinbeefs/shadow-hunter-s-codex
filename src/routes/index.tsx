@@ -1082,7 +1082,7 @@ function ReaderView({
       ignoreScroll.current = true;
       const t = setTimeout(() => {
         ignoreScroll.current = false;
-      }, 400); // 400ms buffer to absorb the initial scrollIntoView / scrollTo
+      }, 700); // buffer to absorb initial scrollIntoView + delayed handleScroll
 
       if (lastLoadedChapter.current !== chapterId) {
         lastLoadedChapter.current = chapterId;
