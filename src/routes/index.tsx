@@ -2083,45 +2083,6 @@ function AchievementsView({ game }: { game: ReturnType<typeof useGameState> }) {
 // ---------- Shop ----------
 function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state, buyItem } = game;
-  return (
-    <div className="space-y-4">
-      <SysPanel>
-        <div className="flex justify-between items-center">
-          <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow">SHOP</h2>
-          <span className="sys-text-gold system-font font-semibold">{state.gold} GOLD</span>
-        </div>
-        <p className="text-xs text-muted-foreground system-font mt-2 tracking-wide">
-          Trade gold earned from dungeon sweeps and daily quests. Purchased weapons and armor can be equipped in your profile to boost stats.
-        </p>
-      </SysPanel>
-
-      {SHOP_ITEMS.map((item) => {
-        const isGear = item.type !== "consumable";
-        const owned = isGear && state.inventory.includes(item.name);
-        const canAfford = state.gold >= item.cost;
-
-        return (
-          <SysPanel key={item.name}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="system-font text-cyan-glow tracking-widest font-semibold flex items-center gap-1.5">
-                  {item.name}
-                  <span className="text-[7px] border border-cyan-glow/30 px-1 py-0.5 uppercase tracking-widest text-cyan-glow/70 rounded">
-                    {item.type}
-                  </span>
-                </div>
-                <div className="text-xs text-muted-foreground system-font mt-1 leading-normal">
-                  {item.desc}
-                </div>
-                {item.bonuses && (
-                  <div className="text-[9px] sys-text-gold system-font tracking-wide mt-1.5 uppercase">
-                    STATS: {Object.entries(item.bonuses).map(([stat, val]) => `+${val} ${stat.toUpperCase()}`).join(", ")}
-                  </div>
-                )}
-              </div>
-// ---------- Shop ----------
-function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
-  const { state, buyItem } = game;
   const [filter, setFilter] = useState<"all" | "consumable" | "weapon" | "armor" | "accessory">("all");
   const filtered = filter === "all" ? SHOP_ITEMS : SHOP_ITEMS.filter((i) => i.type === filter);
   const tabs: { id: typeof filter; label: string }[] = [
