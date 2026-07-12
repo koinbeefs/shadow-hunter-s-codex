@@ -69,14 +69,20 @@ export const SHOP_ITEMS: ShopItem[] = [
   { name: "Shadow Sigil", desc: "Carries the aura of a Monarch. Fully restores MP.", cost: 300, type: "consumable" },
   { name: "Blessed Elixir of Life", desc: "Dungeon reward. Fully heals HP and resets Fatigue to 0.", cost: 400, type: "consumable" },
   // Weapons
+  { name: "Hunter's Dagger", desc: "E-Rank starter dagger. +3 STR, +3 AGI.", cost: 120, type: "weapon", bonuses: { str: 3, agi: 3 } },
   { name: "Kasaka's Venom Fang", desc: "Iconic C-Rank dagger. Grants +5 STR, +10 AGI.", cost: 300, type: "weapon", bonuses: { str: 5, agi: 10 } },
   { name: "Knight Killer", desc: "B-Rank dagger designed for armor penetration. +15 STR, +5 AGI.", cost: 500, type: "weapon", bonuses: { str: 15, agi: 5 } },
   { name: "Baruka's Dagger", desc: "A-Rank ice dagger. Grants +25 AGI, +15 PER.", cost: 800, type: "weapon", bonuses: { agi: 25, per: 15 } },
   { name: "Demon King's Shortsword", desc: "S-Rank dual shortswords. +40 STR, +30 AGI, +20 PER.", cost: 1200, type: "weapon", bonuses: { str: 40, agi: 30, per: 20 } },
+  { name: "Blade of the Monarch", desc: "The Monarch's own blade. +60 STR, +40 AGI, +30 INT.", cost: 2000, type: "weapon", bonuses: { str: 60, agi: 40, int: 30 } },
   // Armor
+  { name: "Awakened Hunter's Vest", desc: "Woven from D-Rank hide. +8 VIT, +4 AGI.", cost: 220, type: "armor", bonuses: { vit: 8, agi: 4 } },
   { name: "Monarch's Cloak", desc: "A shadowy cloak fit for a ruler. +15 VIT, +20 INT.", cost: 400, type: "armor", bonuses: { vit: 15, int: 20 } },
   { name: "Red Knight's Armor", desc: "Heavy plate armor worn by blood-red commanders. +30 VIT.", cost: 600, type: "armor", bonuses: { vit: 30 } },
+  { name: "Shadow Sovereign Plate", desc: "Plate forged in the Monarch's domain. +45 VIT, +25 STR.", cost: 1000, type: "armor", bonuses: { vit: 45, str: 25 } },
   // Accessories
+  { name: "Ring of Insight", desc: "Sharpens focus. +10 PER, +10 INT.", cost: 350, type: "accessory", bonuses: { per: 10, int: 10 } },
+  { name: "Amulet of the Ant King", desc: "Beru's blessing. +25 AGI, +15 PER.", cost: 700, type: "accessory", bonuses: { agi: 25, per: 15 } },
   { name: "Shadow Monarch's Crown", desc: "Legendary crown. +50 to all stats.", cost: 1500, type: "accessory", bonuses: { str: 50, agi: 50, vit: 50, int: 50, per: 50 } },
 ];
 
