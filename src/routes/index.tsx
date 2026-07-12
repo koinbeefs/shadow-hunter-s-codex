@@ -2003,33 +2003,79 @@ function ShadowArmyView({ game }: { game: ReturnType<typeof useGameState> }) {
 // ---------- Achievements ----------
 function AchievementsView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state } = game;
-  const list = [
-    { id: "a1", name: "Awakened", desc: "Reach Level 2", unlocked: state.level >= 2 },
-    { id: "a2", name: "Necromancer", desc: "Extract your first shadow", unlocked: state.shadows.length >= 1 },
-    { id: "a3", name: "Diligent Hunter", desc: "Read 10 chapters", unlocked: state.chaptersRead >= 10 },
-    { id: "a4", name: "Iron Will", desc: "Reach 7-day streak", unlocked: state.streak >= 7 },
-    { id: "a5", name: "Shadow Monarch", desc: "Reach Level 25", unlocked: state.level >= 25 },
-    { id: "a6", name: "Bibliophile", desc: "Read 500 pages", unlocked: state.totalPagesRead >= 500 },
+  const s = state;
+  type Ach = { id: string; name: string; desc: string; tier: "E" | "D" | "C" | "B" | "A" | "S"; progress: number; goal: number };
+  const list: Ach[] = [
+    { id: "a1", name: "Awakened", desc: "Reach Level 2 — the System accepts you.", tier: "E", progress: Math.min(s.level, 2), goal: 2 },
+    { id: "a2", name: "First Steps", desc: "Finish your first chapter.", tier: "E", progress: Math.min(s.chaptersRead, 1), goal: 1 },
+    { id: "a3", name: "Necromancer", desc: "Extract your first shadow soldier.", tier: "D", progress: Math.min(s.shadows.length, 1), goal: 1 },
+    { id: "a4", name: "Diligent Hunter", desc: "Clear 10 chapters.", tier: "D", progress: Math.min(s.chaptersRead, 10), goal: 10 },
+    { id: "a5", name: "Iron Will", desc: "Maintain a 7-day reading streak.", tier: "C", progress: Math.min(s.streak, 7), goal: 7 },
+    { id: "a6", name: "Bibliophile", desc: "Read 500 pages in total.", tier: "C", progress: Math.min(s.totalPagesRead, 500), goal: 500 },
+    { id: "a7", name: "Raid Veteran", desc: "Clear 25 chapters.", tier: "B", progress: Math.min(s.chaptersRead, 25), goal: 25 },
+    { id: "a8", name: "Gold Hoarder", desc: "Accumulate 5,000 Gold.", tier: "B", progress: Math.min(s.gold, 5000), goal: 5000 },
+    { id: "a9", name: "Iron Discipline", desc: "Maintain a 30-day streak.", tier: "A", progress: Math.min(s.streak, 30), goal: 30 },
+    { id: "a10", name: "Shadow Commander", desc: "Extract 5 shadow soldiers.", tier: "A", progress: Math.min(s.shadows.length, 5), goal: 5 },
+    { id: "a11", name: "S-Rank Hunter", desc: "Reach Level 25.", tier: "A", progress: Math.min(s.level, 25), goal: 25 },
+    { id: "a12", name: "Kamish Slayer", desc: "Clear 100 chapters.", tier: "S", progress: Math.min(s.chaptersRead, 100), goal: 100 },
+    { id: "a13", name: "Shadow Monarch", desc: "Arise the full Shadow Army.", tier: "S", progress: s.shadows.length, goal: 10 },
+    { id: "a14", name: "National Level", desc: "Reach Level 40.", tier: "S", progress: Math.min(s.level, 40), goal: 40 },
+    { id: "a15", name: "Endless Reader", desc: "Read 2,000 pages total.", tier: "S", progress: Math.min(s.totalPagesRead, 2000), goal: 2000 },
   ];
+  const tierColor = (t: Ach["tier"]) =>
+    t === "S" ? "sys-text-gold" : t === "A" ? "text-cyan-glow" : t === "B" ? "text-cyan-glow/80" : "text-cyan-glow/60";
+  const unlocked = list.filter((a) => a.progress >= a.goal).length;
   return (
     <div className="space-y-3">
       <SysPanel>
-        <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow">ACHIEVEMENTS</h2>
-      </SysPanel>
-      {list.map((a) => (
-        <SysPanel key={a.id} className={a.unlocked ? "" : "opacity-50"}>
-          <div className="flex items-center gap-3">
-            <Trophy className={`w-6 h-6 ${a.unlocked ? "sys-text-gold" : "text-cyan-glow/40"}`} style={a.unlocked ? { color: "var(--color-gold-glow)", filter: "drop-shadow(0 0 6px var(--color-gold-glow))" } : {}} />
-            <div className="flex-1">
-              <div className="system-font tracking-widest text-cyan-glow">{a.name}</div>
-              <div className="text-xs text-muted-foreground system-font">{a.desc}</div>
-            </div>
-            <div className="text-[10px] system-font tracking-widest">
-              {a.unlocked ? <span className="sys-text-gold">UNLOCKED</span> : <span className="text-cyan-glow/40">LOCKED</span>}
-            </div>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow text-sm">ACHIEVEMENTS</h2>
+            <p className="text-[10px] text-muted-foreground system-font tracking-wide mt-1">
+              Marks earned along the Monarch's path. Progress accrues automatically.
+            </p>
           </div>
-        </SysPanel>
-      ))}
+          <div className="text-right shrink-0">
+            <div className="text-[10px] system-font tracking-widest text-cyan-glow/70">CLEARED</div>
+            <div className="text-2xl system-font sys-text-gold font-bold">{unlocked}/{list.length}</div>
+          </div>
+        </div>
+      </SysPanel>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {list.map((a) => {
+          const done = a.progress >= a.goal;
+          const pct = Math.min(100, (a.progress / a.goal) * 100);
+          return (
+            <SysPanel key={a.id} className={done ? "border-[color:var(--color-gold-glow)]/60" : "opacity-90"}>
+              <div className="flex items-start gap-3">
+                <Trophy
+                  className={`w-7 h-7 shrink-0 ${done ? "sys-text-gold" : "text-cyan-glow/30"}`}
+                  style={done ? { color: "var(--color-gold-glow)", filter: "drop-shadow(0 0 8px var(--color-gold-glow))" } : {}}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className={`system-font tracking-widest text-sm ${done ? "text-cyan-glow" : "text-cyan-glow/70"} truncate`}>
+                      {a.name}
+                    </div>
+                    <span className={`text-[8px] system-font tracking-widest border border-cyan-glow/30 px-1 py-0.5 rounded ${tierColor(a.tier)}`}>
+                      {a.tier}-RANK
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-muted-foreground system-font mt-1 leading-normal">{a.desc}</div>
+                  <div className="mt-2">
+                    <SysBar value={a.progress} max={a.goal} color={done ? "gold" : "cyan"} />
+                    <div className="flex justify-between text-[9px] system-font tracking-widest text-cyan-glow/60 mt-1">
+                      <span>{done ? "UNLOCKED" : "IN PROGRESS"}</span>
+                      <span>{a.progress}/{a.goal}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SysPanel>
+          );
+        })}
+      </div>
     </div>
   );
 }
