@@ -41,7 +41,7 @@ import {
   migrateToVersion3,
   type Chapter,
 } from "@/lib/db";
-import { useGameState, expForNextLevel, SHOP_ITEMS, getStatsWithGear, SHADOW_UNLOCKS } from "@/lib/store";
+import { useGameState, expForNextLevel, SHOP_ITEMS, getStatsWithGear, SHADOW_UNLOCKS, type ShopItem } from "@/lib/store";
 import jinwoo3 from "@/assets/Jinwoo3.gif";
 import jinwoo2 from "@/assets/Jinwoo2.gif";
 import jinwoo from "@/assets/Jinwoo.gif";
