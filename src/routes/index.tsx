@@ -1389,9 +1389,9 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
         <div className="mt-3">
           <SysBar value={dailyDoneCount} max={Math.max(1, dailyQuests.length)} color="cyan" />
         </div>
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex flex-col sm:flex-row gap-2">
           {state.dailyChestClaimed ? (
-            <div className="text-[10px] system-font tracking-widest text-muted-foreground border border-muted-foreground/30 px-3 py-2 w-full text-center">
+            <div className="flex-1 text-[10px] system-font tracking-widest text-muted-foreground border border-muted-foreground/30 px-3 py-2 text-center">
               [ CHEST CLAIMED · RESET AT MIDNIGHT ]
             </div>
           ) : allDailiesDone ? (
@@ -1400,15 +1400,30 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
                 beep(880, 0.1);
                 claimDailyChest();
               }}
-              className="w-full py-2 text-xs system-font tracking-widest bg-cyan-glow/20 text-cyan-glow border border-cyan-glow animate-pulse hover:bg-cyan-glow/30"
+              className="flex-1 py-2 text-xs system-font tracking-widest bg-cyan-glow/20 text-cyan-glow border border-cyan-glow animate-pulse hover:bg-cyan-glow/30"
             >
               ★ EXTRACT REWARD CHEST ★
             </button>
           ) : (
-            <div className="text-[10px] system-font tracking-widest text-cyan-glow/40 border border-cyan-glow/10 px-3 py-2 w-full text-center">
+            <div className="flex-1 text-[10px] system-font tracking-widest text-cyan-glow/40 border border-cyan-glow/10 px-3 py-2 text-center">
               [ REWARD LOCKED · COMPLETE ALL DAILY QUESTS ]
             </div>
           )}
+          <button
+            onClick={() => {
+              beep(500, 0.06);
+              rerollDailies?.();
+            }}
+            disabled={state.gold < 100}
+            className={`shrink-0 px-3 py-2 text-[10px] system-font tracking-widest border transition-all ${
+              state.gold >= 100
+                ? "border-cyan-glow/60 text-cyan-glow hover:bg-cyan-glow/10"
+                : "border-cyan-glow/15 text-cyan-glow/30 cursor-not-allowed"
+            }`}
+            title="Reroll all daily quests"
+          >
+            ↻ REROLL · 100G
+          </button>
         </div>
       </SysPanel>
 
