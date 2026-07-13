@@ -137,6 +137,12 @@ const DAILY_QUESTS_POOL: Omit<Quest, "done">[] = [
   { id: "d7", text: "Speed Sweep: Scroll 10 pages total", reward: 30, type: "daily" },
   { id: "d8", text: "Endurance Raid: Read for 5 continuous minutes", reward: 50, type: "daily" },
   { id: "d9", text: "Gate Clearance: Complete a chapter without bookmarking", reward: 45, type: "daily" },
+  { id: "d10", text: "Mana Meditation: Reach 100 MP", reward: 30, type: "daily" },
+  { id: "d11", text: "Iron Body: End the day above 60 HP", reward: 40, type: "daily" },
+  { id: "d12", text: "Perfect Sweep: Clear 3 pages without pause", reward: 35, type: "daily" },
+  { id: "d13", text: "Marksman: Trigger a Critical Comprehension", reward: 55, type: "daily" },
+  { id: "d14", text: "Loot Goblin: Earn 100 Gold today", reward: 45, type: "daily" },
+  { id: "d15", text: "Battle-Ready: Equip a weapon and armor", reward: 40, type: "daily" },
 ];
 
 const WEEKLY_QUESTS_POOL: Omit<Quest, "done">[] = [
@@ -146,6 +152,10 @@ const WEEKLY_QUESTS_POOL: Omit<Quest, "done">[] = [
   { id: "w4", text: "Mana Recovery: Complete a volume", reward: 400, type: "weekly" },
   { id: "w5", text: "Legendary Scholar: Read 200 pages total", reward: 600, type: "weekly" },
   { id: "w6", text: "Speed Raider: Finish 3 chapters", reward: 350, type: "weekly" },
+  { id: "w7", text: "Iron Discipline: Maintain a 5-day streak", reward: 450, type: "weekly" },
+  { id: "w8", text: "Arisen: Extract a new shadow soldier", reward: 550, type: "weekly" },
+  { id: "w9", text: "Merchant's Favor: Purchase 3 items", reward: 400, type: "weekly" },
+  { id: "w10", text: "Ascendant: Gain 3 levels this week", reward: 700, type: "weekly" },
 ];
 
 const MAIN_QUESTS: Omit<Quest, "done">[] = [
@@ -154,7 +164,11 @@ const MAIN_QUESTS: Omit<Quest, "done">[] = [
   { id: "m3", text: "Reach Level 15 — B-Rank Dungeon Raider", reward: 2000, type: "main" },
   { id: "m4", text: "Reach Level 20 — A-Rank Guildmaster", reward: 3500, type: "main" },
   { id: "m5", text: "Reach Level 25 — Shadow Monarch's Ascension", reward: 5000, type: "main" },
-  { id: "m6", text: "Reach Level 40 — National Level Hunter", reward: 10000, type: "main" },
+  { id: "m6", text: "Reach Level 30 — Sovereign Trials", reward: 7000, type: "main" },
+  { id: "m7", text: "Reach Level 35 — Ruler's Authority", reward: 8500, type: "main" },
+  { id: "m8", text: "Reach Level 40 — National Level Hunter", reward: 10000, type: "main" },
+  { id: "m9", text: "Reach Level 50 — Beyond the Monarchs", reward: 15000, type: "main" },
+  { id: "m10", text: "Reach Level 60 — Absolute Being", reward: 25000, type: "main" },
 ];
 
 function getRandomSubarray<T>(arr: T[], size: number): T[] {
