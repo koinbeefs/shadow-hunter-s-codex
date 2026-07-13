@@ -1531,10 +1531,23 @@ function StatsView({ game }: { game: ReturnType<typeof useGameState> }) {
   const achievementsList = [
     { name: "E-Rank Hunter", desc: "Default rank of all awakened players.", unlocked: true },
     { name: "Awakened", desc: "Unlocks at level 2.", unlocked: state.level >= 2 },
-    { name: "Diligent Hunter", desc: "Read at least 10 chapters.", unlocked: state.chaptersRead >= 10 },
-    { name: "Iron Will", desc: "Unlock a 7-day reading streak.", unlocked: state.streak >= 7 },
+    { name: "D-Rank Ascendant", desc: "Reach level 5.", unlocked: state.level >= 5 },
+    { name: "C-Rank Raider", desc: "Reach level 10.", unlocked: state.level >= 10 },
+    { name: "B-Rank Elite", desc: "Reach level 15.", unlocked: state.level >= 15 },
+    { name: "A-Rank Guildmaster", desc: "Reach level 20.", unlocked: state.level >= 20 },
     { name: "Shadow Monarch", desc: "Reach level 25 or acquire the Crown.", unlocked: state.level >= 25 || state.inventory.includes("Shadow Monarch's Crown") },
+    { name: "National Level", desc: "Reach level 40.", unlocked: state.level >= 40 },
+    { name: "Absolute Being", desc: "Reach level 60.", unlocked: state.level >= 60 },
+    { name: "Diligent Hunter", desc: "Read at least 10 chapters.", unlocked: state.chaptersRead >= 10 },
+    { name: "Raid Veteran", desc: "Clear 25 chapters.", unlocked: state.chaptersRead >= 25 },
+    { name: "Kamish Slayer", desc: "Clear 100 chapters.", unlocked: state.chaptersRead >= 100 },
+    { name: "Iron Will", desc: "Unlock a 7-day reading streak.", unlocked: state.streak >= 7 },
+    { name: "Unbroken", desc: "Maintain a 30-day streak.", unlocked: state.streak >= 30 },
     { name: "Bibliophile", desc: "Read 500 pages total.", unlocked: state.totalPagesRead >= 500 },
+    { name: "Endless Reader", desc: "Read 2,000 pages total.", unlocked: state.totalPagesRead >= 2000 },
+    { name: "Necromancer", desc: "Extract your first shadow.", unlocked: state.shadows.length >= 1 },
+    { name: "Shadow Commander", desc: "Extract 5 shadow soldiers.", unlocked: state.shadows.length >= 5 },
+    { name: "Gold Hoarder", desc: "Accumulate 5,000 Gold.", unlocked: state.gold >= 5000 },
   ];
 
   return (
