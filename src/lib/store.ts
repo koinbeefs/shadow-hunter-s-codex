@@ -84,6 +84,22 @@ export const SHOP_ITEMS: ShopItem[] = [
   { name: "Ring of Insight", desc: "Sharpens focus. +10 PER, +10 INT.", cost: 350, type: "accessory", bonuses: { per: 10, int: 10 } },
   { name: "Amulet of the Ant King", desc: "Beru's blessing. +25 AGI, +15 PER.", cost: 700, type: "accessory", bonuses: { agi: 25, per: 15 } },
   { name: "Shadow Monarch's Crown", desc: "Legendary crown. +50 to all stats.", cost: 1500, type: "accessory", bonuses: { str: 50, agi: 50, vit: 50, int: 50, per: 50 } },
+  // Additional Consumables
+  { name: "Lesser Healing Potion", desc: "A basic potion. Restores 15 HP.", cost: 20, type: "consumable" },
+  { name: "Bottled Aura", desc: "Captured mana essence. Restores 20 MP.", cost: 35, type: "consumable" },
+  { name: "Stamina Draught", desc: "Bitter but effective. -25 Fatigue.", cost: 60, type: "consumable" },
+  { name: "Scroll of Insight", desc: "Ancient scroll. Instantly grants +100 EXP.", cost: 90, type: "consumable" },
+  { name: "Dragon's Tear", desc: "Ultra-rare relic. +500 EXP and 200 Gold refund.", cost: 500, type: "consumable" },
+  // Additional Weapons
+  { name: "Steel Longsword", desc: "Reliable D-Rank blade. +8 STR, +2 AGI.", cost: 180, type: "weapon", bonuses: { str: 8, agi: 2 } },
+  { name: "Beast Killer Bow", desc: "A-Rank ranged weapon. +10 AGI, +20 PER.", cost: 650, type: "weapon", bonuses: { agi: 10, per: 20 } },
+  { name: "Kamish's Wrath", desc: "Forged from Kamish's fang. +80 STR, +50 AGI.", cost: 3000, type: "weapon", bonuses: { str: 80, agi: 50 } },
+  // Additional Armor
+  { name: "Reinforced Leather", desc: "Standard hunter gear. +12 VIT, +6 AGI.", cost: 300, type: "armor", bonuses: { vit: 12, agi: 6 } },
+  { name: "Demon Monarch's Robe", desc: "Robe woven from demonic silk. +30 INT, +20 VIT.", cost: 900, type: "armor", bonuses: { int: 30, vit: 20 } },
+  // Additional Accessories
+  { name: "Necklace of Kaisel", desc: "Grants the winds of the sky dragon. +15 AGI, +15 PER.", cost: 450, type: "accessory", bonuses: { agi: 15, per: 15 } },
+  { name: "Beru's Fang Earring", desc: "Predator's focus. +20 STR, +20 PER.", cost: 800, type: "accessory", bonuses: { str: 20, per: 20 } },
 ];
 
 export function getStatsWithGear(state: GameState) {
@@ -137,6 +153,12 @@ const DAILY_QUESTS_POOL: Omit<Quest, "done">[] = [
   { id: "d7", text: "Speed Sweep: Scroll 10 pages total", reward: 30, type: "daily" },
   { id: "d8", text: "Endurance Raid: Read for 5 continuous minutes", reward: 50, type: "daily" },
   { id: "d9", text: "Gate Clearance: Complete a chapter without bookmarking", reward: 45, type: "daily" },
+  { id: "d10", text: "Mana Meditation: Reach 100 MP", reward: 30, type: "daily" },
+  { id: "d11", text: "Iron Body: End the day above 60 HP", reward: 40, type: "daily" },
+  { id: "d12", text: "Perfect Sweep: Clear 3 pages without pause", reward: 35, type: "daily" },
+  { id: "d13", text: "Marksman: Trigger a Critical Comprehension", reward: 55, type: "daily" },
+  { id: "d14", text: "Loot Goblin: Earn 100 Gold today", reward: 45, type: "daily" },
+  { id: "d15", text: "Battle-Ready: Equip a weapon and armor", reward: 40, type: "daily" },
 ];
 
 const WEEKLY_QUESTS_POOL: Omit<Quest, "done">[] = [
@@ -146,6 +168,10 @@ const WEEKLY_QUESTS_POOL: Omit<Quest, "done">[] = [
   { id: "w4", text: "Mana Recovery: Complete a volume", reward: 400, type: "weekly" },
   { id: "w5", text: "Legendary Scholar: Read 200 pages total", reward: 600, type: "weekly" },
   { id: "w6", text: "Speed Raider: Finish 3 chapters", reward: 350, type: "weekly" },
+  { id: "w7", text: "Iron Discipline: Maintain a 5-day streak", reward: 450, type: "weekly" },
+  { id: "w8", text: "Arisen: Extract a new shadow soldier", reward: 550, type: "weekly" },
+  { id: "w9", text: "Merchant's Favor: Purchase 3 items", reward: 400, type: "weekly" },
+  { id: "w10", text: "Ascendant: Gain 3 levels this week", reward: 700, type: "weekly" },
 ];
 
 const MAIN_QUESTS: Omit<Quest, "done">[] = [
@@ -154,7 +180,11 @@ const MAIN_QUESTS: Omit<Quest, "done">[] = [
   { id: "m3", text: "Reach Level 15 — B-Rank Dungeon Raider", reward: 2000, type: "main" },
   { id: "m4", text: "Reach Level 20 — A-Rank Guildmaster", reward: 3500, type: "main" },
   { id: "m5", text: "Reach Level 25 — Shadow Monarch's Ascension", reward: 5000, type: "main" },
-  { id: "m6", text: "Reach Level 40 — National Level Hunter", reward: 10000, type: "main" },
+  { id: "m6", text: "Reach Level 30 — Sovereign Trials", reward: 7000, type: "main" },
+  { id: "m7", text: "Reach Level 35 — Ruler's Authority", reward: 8500, type: "main" },
+  { id: "m8", text: "Reach Level 40 — National Level Hunter", reward: 10000, type: "main" },
+  { id: "m9", text: "Reach Level 50 — Beyond the Monarchs", reward: 15000, type: "main" },
+  { id: "m10", text: "Reach Level 60 — Absolute Being", reward: 25000, type: "main" },
 ];
 
 function getRandomSubarray<T>(arr: T[], size: number): T[] {
@@ -343,7 +373,11 @@ export function useGameState(notify: Notify) {
           if (q.id === "m3" && level >= 15) return { ...q, done: true };
           if (q.id === "m4" && level >= 20) return { ...q, done: true };
           if (q.id === "m5" && level >= 25) return { ...q, done: true };
-          if (q.id === "m6" && level >= 40) return { ...q, done: true };
+          if (q.id === "m6" && level >= 30) return { ...q, done: true };
+          if (q.id === "m7" && level >= 35) return { ...q, done: true };
+          if (q.id === "m8" && level >= 40) return { ...q, done: true };
+          if (q.id === "m9" && level >= 50) return { ...q, done: true };
+          if (q.id === "m10" && level >= 60) return { ...q, done: true };
           return q;
         });
 
@@ -786,6 +820,29 @@ export function useGameState(notify: Notify) {
     setState((s) => ({ ...s, onboarded: true }));
   }, []);
 
+  const rerollDailies = useCallback(() => {
+    const cost = 100;
+    if (state.gold < cost) {
+      notify("Need 100 Gold to reroll dailies", "danger");
+      return;
+    }
+    notify("Daily quests re-issued by the System", "quest");
+    setState((s) => {
+      const nonDaily = s.quests.filter((q) => q.type !== "daily");
+      const newDailies = getRandomSubarray(DAILY_QUESTS_POOL, 4).map((q) => ({ ...q, done: false }));
+      return {
+        ...s,
+        gold: s.gold - cost,
+        quests: [...newDailies, ...nonDaily],
+        dailyChestClaimed: false,
+        activity: [
+          { id: crypto.randomUUID(), ts: Date.now(), message: `[SYSTEM] Daily quests rerolled. -${cost} Gold.` },
+          ...s.activity,
+        ].slice(0, 60),
+      };
+    });
+  }, [notify, state.gold]);
+
   return {
     state,
     hydrated,
@@ -802,6 +859,7 @@ export function useGameState(notify: Notify) {
     equipTitle,
     useItem,
     claimDailyChest,
+    rerollDailies,
     deleteProgress,
   };
 }

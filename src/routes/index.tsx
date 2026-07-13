@@ -1357,6 +1357,7 @@ function ReaderView({
 function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state } = game;
   const claimDailyChest = (game as any).claimDailyChest;
+  const rerollDailies = (game as any).rerollDailies;
 
   const dailyQuests = state.quests.filter((q) => q.type === "daily");
   const dailyDoneCount = dailyQuests.filter((q) => q.done).length;
@@ -1388,9 +1389,9 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
         <div className="mt-3">
           <SysBar value={dailyDoneCount} max={Math.max(1, dailyQuests.length)} color="cyan" />
         </div>
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex flex-col sm:flex-row gap-2">
           {state.dailyChestClaimed ? (
-            <div className="text-[10px] system-font tracking-widest text-muted-foreground border border-muted-foreground/30 px-3 py-2 w-full text-center">
+            <div className="flex-1 text-[10px] system-font tracking-widest text-muted-foreground border border-muted-foreground/30 px-3 py-2 text-center">
               [ CHEST CLAIMED · RESET AT MIDNIGHT ]
             </div>
           ) : allDailiesDone ? (
@@ -1399,15 +1400,30 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
                 beep(880, 0.1);
                 claimDailyChest();
               }}
-              className="w-full py-2 text-xs system-font tracking-widest bg-cyan-glow/20 text-cyan-glow border border-cyan-glow animate-pulse hover:bg-cyan-glow/30"
+              className="flex-1 py-2 text-xs system-font tracking-widest bg-cyan-glow/20 text-cyan-glow border border-cyan-glow animate-pulse hover:bg-cyan-glow/30"
             >
               ★ EXTRACT REWARD CHEST ★
             </button>
           ) : (
-            <div className="text-[10px] system-font tracking-widest text-cyan-glow/40 border border-cyan-glow/10 px-3 py-2 w-full text-center">
+            <div className="flex-1 text-[10px] system-font tracking-widest text-cyan-glow/40 border border-cyan-glow/10 px-3 py-2 text-center">
               [ REWARD LOCKED · COMPLETE ALL DAILY QUESTS ]
             </div>
           )}
+          <button
+            onClick={() => {
+              beep(500, 0.06);
+              rerollDailies?.();
+            }}
+            disabled={state.gold < 100}
+            className={`shrink-0 px-3 py-2 text-[10px] system-font tracking-widest border transition-all ${
+              state.gold >= 100
+                ? "border-cyan-glow/60 text-cyan-glow hover:bg-cyan-glow/10"
+                : "border-cyan-glow/15 text-cyan-glow/30 cursor-not-allowed"
+            }`}
+            title="Reroll all daily quests"
+          >
+            ↻ REROLL · 100G
+          </button>
         </div>
       </SysPanel>
 
@@ -1515,10 +1531,23 @@ function StatsView({ game }: { game: ReturnType<typeof useGameState> }) {
   const achievementsList = [
     { name: "E-Rank Hunter", desc: "Default rank of all awakened players.", unlocked: true },
     { name: "Awakened", desc: "Unlocks at level 2.", unlocked: state.level >= 2 },
-    { name: "Diligent Hunter", desc: "Read at least 10 chapters.", unlocked: state.chaptersRead >= 10 },
-    { name: "Iron Will", desc: "Unlock a 7-day reading streak.", unlocked: state.streak >= 7 },
+    { name: "D-Rank Ascendant", desc: "Reach level 5.", unlocked: state.level >= 5 },
+    { name: "C-Rank Raider", desc: "Reach level 10.", unlocked: state.level >= 10 },
+    { name: "B-Rank Elite", desc: "Reach level 15.", unlocked: state.level >= 15 },
+    { name: "A-Rank Guildmaster", desc: "Reach level 20.", unlocked: state.level >= 20 },
     { name: "Shadow Monarch", desc: "Reach level 25 or acquire the Crown.", unlocked: state.level >= 25 || state.inventory.includes("Shadow Monarch's Crown") },
+    { name: "National Level", desc: "Reach level 40.", unlocked: state.level >= 40 },
+    { name: "Absolute Being", desc: "Reach level 60.", unlocked: state.level >= 60 },
+    { name: "Diligent Hunter", desc: "Read at least 10 chapters.", unlocked: state.chaptersRead >= 10 },
+    { name: "Raid Veteran", desc: "Clear 25 chapters.", unlocked: state.chaptersRead >= 25 },
+    { name: "Kamish Slayer", desc: "Clear 100 chapters.", unlocked: state.chaptersRead >= 100 },
+    { name: "Iron Will", desc: "Unlock a 7-day reading streak.", unlocked: state.streak >= 7 },
+    { name: "Unbroken", desc: "Maintain a 30-day streak.", unlocked: state.streak >= 30 },
     { name: "Bibliophile", desc: "Read 500 pages total.", unlocked: state.totalPagesRead >= 500 },
+    { name: "Endless Reader", desc: "Read 2,000 pages total.", unlocked: state.totalPagesRead >= 2000 },
+    { name: "Necromancer", desc: "Extract your first shadow.", unlocked: state.shadows.length >= 1 },
+    { name: "Shadow Commander", desc: "Extract 5 shadow soldiers.", unlocked: state.shadows.length >= 5 },
+    { name: "Gold Hoarder", desc: "Accumulate 5,000 Gold.", unlocked: state.gold >= 5000 },
   ];
 
   return (
@@ -1656,6 +1685,45 @@ function StatsView({ game }: { game: ReturnType<typeof useGameState> }) {
               </div>
             );
           })}
+        </div>
+      </SysPanel>
+
+      {/* Derived Combat Stats */}
+      <SysPanel>
+        <h3 className="system-font tracking-[0.2em] text-cyan-glow text-sm mb-3 sys-text-glow">DERIVED COMBAT STATS</h3>
+        <p className="text-[10px] text-muted-foreground system-font tracking-wide mb-3">
+          Battle-tested values calculated from your current stats + gear. These directly modify how the System rewards and taxes you while reading.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { label: "ATTACK POWER", value: statsWithGear.str * 3 + statsWithGear.agi, unit: "", tint: "gold" },
+            { label: "DEFENSE", value: statsWithGear.vit * 2, unit: "", tint: "cyan" },
+            { label: "MAX HP", value: 100 + statsWithGear.vit * 5, unit: "", tint: "cyan" },
+            { label: "MAX MP", value: 100 + statsWithGear.int * 4, unit: "", tint: "cyan" },
+            { label: "CRIT RATE", value: +(statsWithGear.per * 0.5).toFixed(1), unit: "%", tint: "gold" },
+            { label: "EXP BOOST", value: +(statsWithGear.int * 1.5).toFixed(1), unit: "%", tint: "gold" },
+            { label: "GOLD BOOST", value: +(statsWithGear.str * 2).toFixed(1), unit: "%", tint: "gold" },
+            { label: "FATIGUE RES", value: Math.min(90, +(statsWithGear.agi * 1).toFixed(1)), unit: "%", tint: "cyan" },
+            { label: "HP LOSS RES", value: Math.min(90, +(statsWithGear.vit * 1.5).toFixed(1)), unit: "%", tint: "cyan" },
+          ].map((d) => (
+            <div key={d.label} className="sys-panel !p-2 border border-cyan-glow/25">
+              <div className="text-[8px] system-font text-cyan-glow/60 tracking-widest">{d.label}</div>
+              <div className={`text-lg system-font font-bold ${d.tint === "gold" ? "sys-text-gold" : "text-cyan-glow sys-text-glow"}`}>
+                {d.value}{d.unit}
+              </div>
+            </div>
+          ))}
+        </div>
+      </SysPanel>
+
+      {/* Vitals Card */}
+      <SysPanel>
+        <h3 className="system-font tracking-[0.2em] text-cyan-glow text-sm mb-3 sys-text-glow">VITALS</h3>
+        <div className="space-y-2">
+          <StatLine label="HP" value={state.hp} max={100} color="red" />
+          <StatLine label="MP" value={state.mp} max={100} color="cyan" />
+          <StatLine label="FATIGUE" value={state.fatigue} max={100} color="purple" />
+          <StatLine label="EXP" value={state.exp} max={nextLvlExp} color="gold" showVal />
         </div>
       </SysPanel>
 
@@ -2021,6 +2089,16 @@ function AchievementsView({ game }: { game: ReturnType<typeof useGameState> }) {
     { id: "a13", name: "Shadow Monarch", desc: "Arise the full Shadow Army.", tier: "S", progress: s.shadows.length, goal: 10 },
     { id: "a14", name: "National Level", desc: "Reach Level 40.", tier: "S", progress: Math.min(s.level, 40), goal: 40 },
     { id: "a15", name: "Endless Reader", desc: "Read 2,000 pages total.", tier: "S", progress: Math.min(s.totalPagesRead, 2000), goal: 2000 },
+    { id: "a16", name: "Speed Reader", desc: "Read 50 pages total.", tier: "E", progress: Math.min(s.totalPagesRead, 50), goal: 50 },
+    { id: "a17", name: "Dedicated", desc: "Maintain a 3-day streak.", tier: "E", progress: Math.min(s.streak, 3), goal: 3 },
+    { id: "a18", name: "Coin Collector", desc: "Accumulate 500 Gold.", tier: "D", progress: Math.min(s.gold, 500), goal: 500 },
+    { id: "a19", name: "Well Equipped", desc: "Purchase 5 items from the Black Market.", tier: "C", progress: Math.min(s.inventory.length, 5), goal: 5 },
+    { id: "a20", name: "Marathon Reader", desc: "Read for 60 total minutes.", tier: "B", progress: Math.min(Math.floor(s.totalReadingMs / 60000), 60), goal: 60 },
+    { id: "a21", name: "Insomniac", desc: "Read for 300 total minutes.", tier: "A", progress: Math.min(Math.floor(s.totalReadingMs / 60000), 300), goal: 300 },
+    { id: "a22", name: "Half-Century Hunter", desc: "Reach Level 50.", tier: "S", progress: Math.min(s.level, 50), goal: 50 },
+    { id: "a23", name: "Absolute Being", desc: "Reach Level 60.", tier: "S", progress: Math.min(s.level, 60), goal: 60 },
+    { id: "a24", name: "Legendary Vault", desc: "Accumulate 20,000 Gold.", tier: "S", progress: Math.min(s.gold, 20000), goal: 20000 },
+    { id: "a25", name: "The Monarch's Wardrobe", desc: "Own the Shadow Monarch's Crown.", tier: "S", progress: s.inventory.includes("Shadow Monarch's Crown") ? 1 : 0, goal: 1 },
   ];
   const tierColor = (t: Ach["tier"]) =>
     t === "S" ? "sys-text-gold" : t === "A" ? "text-cyan-glow" : t === "B" ? "text-cyan-glow/80" : "text-cyan-glow/60";
