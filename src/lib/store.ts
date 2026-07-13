@@ -820,6 +820,29 @@ export function useGameState(notify: Notify) {
     setState((s) => ({ ...s, onboarded: true }));
   }, []);
 
+  const rerollDailies = useCallback(() => {
+    const cost = 100;
+    if (state.gold < cost) {
+      notify("Need 100 Gold to reroll dailies", "danger");
+      return;
+    }
+    notify("Daily quests re-issued by the System", "quest");
+    setState((s) => {
+      const nonDaily = s.quests.filter((q) => q.type !== "daily");
+      const newDailies = getRandomSubarray(DAILY_QUESTS_POOL, 4).map((q) => ({ ...q, done: false }));
+      return {
+        ...s,
+        gold: s.gold - cost,
+        quests: [...newDailies, ...nonDaily],
+        dailyChestClaimed: false,
+        activity: [
+          { id: crypto.randomUUID(), ts: Date.now(), message: `[SYSTEM] Daily quests rerolled. -${cost} Gold.` },
+          ...s.activity,
+        ].slice(0, 60),
+      };
+    });
+  }, [notify, state.gold]);
+
   return {
     state,
     hydrated,
@@ -836,6 +859,7 @@ export function useGameState(notify: Notify) {
     equipTitle,
     useItem,
     claimDailyChest,
+    rerollDailies,
     deleteProgress,
   };
 }
