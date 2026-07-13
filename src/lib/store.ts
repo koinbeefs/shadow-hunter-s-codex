@@ -357,7 +357,11 @@ export function useGameState(notify: Notify) {
           if (q.id === "m3" && level >= 15) return { ...q, done: true };
           if (q.id === "m4" && level >= 20) return { ...q, done: true };
           if (q.id === "m5" && level >= 25) return { ...q, done: true };
-          if (q.id === "m6" && level >= 40) return { ...q, done: true };
+          if (q.id === "m6" && level >= 30) return { ...q, done: true };
+          if (q.id === "m7" && level >= 35) return { ...q, done: true };
+          if (q.id === "m8" && level >= 40) return { ...q, done: true };
+          if (q.id === "m9" && level >= 50) return { ...q, done: true };
+          if (q.id === "m10" && level >= 60) return { ...q, done: true };
           return q;
         });
 
