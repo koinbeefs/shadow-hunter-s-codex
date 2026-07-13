@@ -1675,6 +1675,45 @@ function StatsView({ game }: { game: ReturnType<typeof useGameState> }) {
         </div>
       </SysPanel>
 
+      {/* Derived Combat Stats */}
+      <SysPanel>
+        <h3 className="system-font tracking-[0.2em] text-cyan-glow text-sm mb-3 sys-text-glow">DERIVED COMBAT STATS</h3>
+        <p className="text-[10px] text-muted-foreground system-font tracking-wide mb-3">
+          Battle-tested values calculated from your current stats + gear. These directly modify how the System rewards and taxes you while reading.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { label: "ATTACK POWER", value: statsWithGear.str * 3 + statsWithGear.agi, unit: "", tint: "gold" },
+            { label: "DEFENSE", value: statsWithGear.vit * 2, unit: "", tint: "cyan" },
+            { label: "MAX HP", value: 100 + statsWithGear.vit * 5, unit: "", tint: "cyan" },
+            { label: "MAX MP", value: 100 + statsWithGear.int * 4, unit: "", tint: "cyan" },
+            { label: "CRIT RATE", value: +(statsWithGear.per * 0.5).toFixed(1), unit: "%", tint: "gold" },
+            { label: "EXP BOOST", value: +(statsWithGear.int * 1.5).toFixed(1), unit: "%", tint: "gold" },
+            { label: "GOLD BOOST", value: +(statsWithGear.str * 2).toFixed(1), unit: "%", tint: "gold" },
+            { label: "FATIGUE RES", value: Math.min(90, +(statsWithGear.agi * 1).toFixed(1)), unit: "%", tint: "cyan" },
+            { label: "HP LOSS RES", value: Math.min(90, +(statsWithGear.vit * 1.5).toFixed(1)), unit: "%", tint: "cyan" },
+          ].map((d) => (
+            <div key={d.label} className="sys-panel !p-2 border border-cyan-glow/25">
+              <div className="text-[8px] system-font text-cyan-glow/60 tracking-widest">{d.label}</div>
+              <div className={`text-lg system-font font-bold ${d.tint === "gold" ? "sys-text-gold" : "text-cyan-glow sys-text-glow"}`}>
+                {d.value}{d.unit}
+              </div>
+            </div>
+          ))}
+        </div>
+      </SysPanel>
+
+      {/* Vitals Card */}
+      <SysPanel>
+        <h3 className="system-font tracking-[0.2em] text-cyan-glow text-sm mb-3 sys-text-glow">VITALS</h3>
+        <div className="space-y-2">
+          <StatLine label="HP" value={state.hp} max={100} color="red" />
+          <StatLine label="MP" value={state.mp} max={100} color="cyan" />
+          <StatLine label="FATIGUE" value={state.fatigue} max={100} color="purple" />
+          <StatLine label="EXP" value={state.exp} max={nextLvlExp} color="gold" showVal />
+        </div>
+      </SysPanel>
+
       {/* Title Cabinet Selector */}
       <SysPanel>
         <h3 className="system-font tracking-[0.2em] text-cyan-glow text-sm mb-3 sys-text-glow">TITLES CABINET</h3>
