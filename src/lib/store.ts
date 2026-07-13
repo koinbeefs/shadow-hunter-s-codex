@@ -84,6 +84,22 @@ export const SHOP_ITEMS: ShopItem[] = [
   { name: "Ring of Insight", desc: "Sharpens focus. +10 PER, +10 INT.", cost: 350, type: "accessory", bonuses: { per: 10, int: 10 } },
   { name: "Amulet of the Ant King", desc: "Beru's blessing. +25 AGI, +15 PER.", cost: 700, type: "accessory", bonuses: { agi: 25, per: 15 } },
   { name: "Shadow Monarch's Crown", desc: "Legendary crown. +50 to all stats.", cost: 1500, type: "accessory", bonuses: { str: 50, agi: 50, vit: 50, int: 50, per: 50 } },
+  // Additional Consumables
+  { name: "Lesser Healing Potion", desc: "A basic potion. Restores 15 HP.", cost: 20, type: "consumable" },
+  { name: "Bottled Aura", desc: "Captured mana essence. Restores 20 MP.", cost: 35, type: "consumable" },
+  { name: "Stamina Draught", desc: "Bitter but effective. -25 Fatigue.", cost: 60, type: "consumable" },
+  { name: "Scroll of Insight", desc: "Ancient scroll. Instantly grants +100 EXP.", cost: 90, type: "consumable" },
+  { name: "Dragon's Tear", desc: "Ultra-rare relic. +500 EXP and 200 Gold refund.", cost: 500, type: "consumable" },
+  // Additional Weapons
+  { name: "Steel Longsword", desc: "Reliable D-Rank blade. +8 STR, +2 AGI.", cost: 180, type: "weapon", bonuses: { str: 8, agi: 2 } },
+  { name: "Beast Killer Bow", desc: "A-Rank ranged weapon. +10 AGI, +20 PER.", cost: 650, type: "weapon", bonuses: { agi: 10, per: 20 } },
+  { name: "Kamish's Wrath", desc: "Forged from Kamish's fang. +80 STR, +50 AGI.", cost: 3000, type: "weapon", bonuses: { str: 80, agi: 50 } },
+  // Additional Armor
+  { name: "Reinforced Leather", desc: "Standard hunter gear. +12 VIT, +6 AGI.", cost: 300, type: "armor", bonuses: { vit: 12, agi: 6 } },
+  { name: "Demon Monarch's Robe", desc: "Robe woven from demonic silk. +30 INT, +20 VIT.", cost: 900, type: "armor", bonuses: { int: 30, vit: 20 } },
+  // Additional Accessories
+  { name: "Necklace of Kaisel", desc: "Grants the winds of the sky dragon. +15 AGI, +15 PER.", cost: 450, type: "accessory", bonuses: { agi: 15, per: 15 } },
+  { name: "Beru's Fang Earring", desc: "Predator's focus. +20 STR, +20 PER.", cost: 800, type: "accessory", bonuses: { str: 20, per: 20 } },
 ];
 
 export function getStatsWithGear(state: GameState) {
