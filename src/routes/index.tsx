@@ -1357,6 +1357,7 @@ function ReaderView({
 function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state } = game;
   const claimDailyChest = (game as any).claimDailyChest;
+  const rerollDailies = (game as any).rerollDailies;
 
   const dailyQuests = state.quests.filter((q) => q.type === "daily");
   const dailyDoneCount = dailyQuests.filter((q) => q.done).length;
