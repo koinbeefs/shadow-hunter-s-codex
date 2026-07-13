@@ -2089,6 +2089,16 @@ function AchievementsView({ game }: { game: ReturnType<typeof useGameState> }) {
     { id: "a13", name: "Shadow Monarch", desc: "Arise the full Shadow Army.", tier: "S", progress: s.shadows.length, goal: 10 },
     { id: "a14", name: "National Level", desc: "Reach Level 40.", tier: "S", progress: Math.min(s.level, 40), goal: 40 },
     { id: "a15", name: "Endless Reader", desc: "Read 2,000 pages total.", tier: "S", progress: Math.min(s.totalPagesRead, 2000), goal: 2000 },
+    { id: "a16", name: "Speed Reader", desc: "Read 50 pages total.", tier: "E", progress: Math.min(s.totalPagesRead, 50), goal: 50 },
+    { id: "a17", name: "Dedicated", desc: "Maintain a 3-day streak.", tier: "E", progress: Math.min(s.streak, 3), goal: 3 },
+    { id: "a18", name: "Coin Collector", desc: "Accumulate 500 Gold.", tier: "D", progress: Math.min(s.gold, 500), goal: 500 },
+    { id: "a19", name: "Well Equipped", desc: "Purchase 5 items from the Black Market.", tier: "C", progress: Math.min(s.inventory.length, 5), goal: 5 },
+    { id: "a20", name: "Marathon Reader", desc: "Read for 60 total minutes.", tier: "B", progress: Math.min(Math.floor(s.totalReadingMs / 60000), 60), goal: 60 },
+    { id: "a21", name: "Insomniac", desc: "Read for 300 total minutes.", tier: "A", progress: Math.min(Math.floor(s.totalReadingMs / 60000), 300), goal: 300 },
+    { id: "a22", name: "Half-Century Hunter", desc: "Reach Level 50.", tier: "S", progress: Math.min(s.level, 50), goal: 50 },
+    { id: "a23", name: "Absolute Being", desc: "Reach Level 60.", tier: "S", progress: Math.min(s.level, 60), goal: 60 },
+    { id: "a24", name: "Legendary Vault", desc: "Accumulate 20,000 Gold.", tier: "S", progress: Math.min(s.gold, 20000), goal: 20000 },
+    { id: "a25", name: "The Monarch's Wardrobe", desc: "Own the Shadow Monarch's Crown.", tier: "S", progress: s.inventory.includes("Shadow Monarch's Crown") ? 1 : 0, goal: 1 },
   ];
   const tierColor = (t: Ach["tier"]) =>
     t === "S" ? "sys-text-gold" : t === "A" ? "text-cyan-glow" : t === "B" ? "text-cyan-glow/80" : "text-cyan-glow/60";
