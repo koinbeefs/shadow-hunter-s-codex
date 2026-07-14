@@ -1263,7 +1263,10 @@ function ReaderView({
 
 
       {isExhausted && (
-        <div className="min-h-[80vh] flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-sys-slide-in"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="sys-panel sys-panel-corners max-w-md w-full p-6 text-center border-[color:var(--color-danger-glow)] !border-[color:var(--color-danger-glow)]/60 relative animate-sys-pulse">
             <div className="text-xs tracking-[0.4em] sys-text-danger system-font mb-2">
               [SYSTEM WARNING · EMERGENCY]
@@ -1274,8 +1277,8 @@ function ReaderView({
             <div className="w-full h-[1px] bg-red-600/30 my-4" />
             <p className="text-xs text-muted-foreground system-font tracking-wide leading-relaxed mb-6 text-left">
               Your physical and mental strength have depleted below standard hunter thresholds.
-              All actions (reading) have been suspended by the System.
-              You must execute recovery before attempting to continue training.
+              All actions have been suspended by the System. Execute recovery to resume where
+              you left off — Page {currentPage + 1} of {pages.length}.
             </p>
             <div className="sys-panel !p-4 bg-red-950/20 border-red-500/20 text-left mb-6 space-y-2 text-xs system-font">
               <div className="flex justify-between">
@@ -1305,9 +1308,13 @@ function ReaderView({
             >
               [ REST AND RECOVER ]
             </SysBtn>
+            <p className="mt-3 text-[10px] system-font tracking-widest text-muted-foreground">
+              Resuming reader at your last page after recovery.
+            </p>
           </div>
         </div>
       )}
+
 
       {/* Pager: previous / next chapter */}
       {!isExhausted && pages.length > 0 && (
