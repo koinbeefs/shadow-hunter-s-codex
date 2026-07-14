@@ -413,9 +413,9 @@ export function useGameState(notify: Notify) {
       let questRewardExp = 0;
       setState((s) => {
         const q = s.quests.find((x) => x.id === id);
-        if (!q || q.done) return s;
+        if (!q || q.claimed) return s;
         questRewardExp = q.reward;
-        
+
         // Gold reward based on STR (+2% gold per STR point)
         const statsWithGear = getStatsWithGear(s);
         const baseGold = Math.floor(q.reward / 3);
@@ -425,7 +425,7 @@ export function useGameState(notify: Notify) {
         notify(`Quest complete: ${q.text}`, "quest");
         return {
           ...s,
-          quests: s.quests.map((x) => (x.id === id ? { ...x, done: true } : x)),
+          quests: s.quests.map((x) => (x.id === id ? { ...x, done: true, claimed: true } : x)),
           gold: s.gold + goldReward,
           activity: [
             { id: crypto.randomUUID(), ts: Date.now(), message: `[QUEST] ${q.text} — cleared. +${goldReward} Gold` },
@@ -433,13 +433,14 @@ export function useGameState(notify: Notify) {
           ].slice(0, 60),
         };
       });
-      
+
       if (questRewardExp > 0) {
         setTimeout(() => gainExp(questRewardExp, `Quest Cleared: ${id}`), 10);
       }
     },
     [gainExp, notify],
   );
+
 
   const recordPageRead = useCallback(
     (chapterId: string, page: number, total: number, readingMs = 0, chapterOrder?: number) => {
