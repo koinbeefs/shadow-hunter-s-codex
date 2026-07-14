@@ -2169,6 +2169,8 @@ function AchievementsView({ game }: { game: ReturnType<typeof useGameState> }) {
 function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state, buyItem } = game;
   const [filter, setFilter] = useState<"all" | "consumable" | "weapon" | "armor" | "accessory">("all");
+  const [confirmItem, setConfirmItem] = useState<ShopItem | null>(null);
+  const [qty, setQty] = useState(1);
   const filtered = filter === "all" ? SHOP_ITEMS : SHOP_ITEMS.filter((i) => i.type === filter);
   const tabs: { id: typeof filter; label: string }[] = [
     { id: "all", label: "ALL" },
@@ -2182,6 +2184,17 @@ function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
       : t === "armor" ? <Shield className="w-5 h-5 text-cyan-glow" />
       : t === "accessory" ? <Gem className="w-5 h-5 text-cyan-glow" />
       : <Sparkles className="w-5 h-5 text-cyan-glow" />;
+
+  const openConfirm = (item: ShopItem) => {
+    setConfirmItem(item);
+    setQty(1);
+  };
+  const closeConfirm = () => setConfirmItem(null);
+
+  const isGearType = confirmItem && confirmItem.type !== "consumable";
+  const maxAffordable = confirmItem ? Math.max(1, Math.floor(state.gold / confirmItem.cost)) : 1;
+  const totalCost = confirmItem ? confirmItem.cost * qty : 0;
+  const canConfirm = confirmItem ? state.gold >= totalCost : false;
 
   return (
     <div className="space-y-4">
@@ -2241,10 +2254,7 @@ function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
                   </div>
                 </div>
                 <SysBtn
-                  onClick={() => {
-                    beep(880, 0.05);
-                    buyItem(item.name, item.cost);
-                  }}
+                  onClick={() => openConfirm(item)}
                   disabled={owned || !canAfford}
                 >
                   {owned ? "OWNED" : `${item.cost} G`}
@@ -2254,6 +2264,120 @@ function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
           );
         })}
       </div>
+
+      {confirmItem && (
+        <div
+          className="fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-sys-slide-in"
+          onClick={closeConfirm}
+        >
+          <div
+            className="sys-panel sys-panel-corners max-w-md w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[10px] tracking-[0.4em] text-cyan-glow/70 system-font mb-2">
+              [SYSTEM · PURCHASE CONFIRMATION]
+            </div>
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-12 h-12 shrink-0 border border-cyan-glow/40 flex items-center justify-center bg-cyan-glow/5 rounded">
+                {typeIcon(confirmItem.type)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="system-font text-cyan-glow tracking-widest font-semibold">
+                  {confirmItem.name}
+                </div>
+                <div className="text-[10px] text-muted-foreground system-font mt-1 leading-normal">
+                  {confirmItem.desc}
+                </div>
+                {confirmItem.bonuses && (
+                  <div className="text-[9px] sys-text-gold system-font tracking-wide mt-1.5 uppercase">
+                    {Object.entries(confirmItem.bonuses).map(([s, v]) => `+${v} ${s.toUpperCase()}`).join(", ")}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {!isGearType && (
+              <div className="mb-4">
+                <div className="text-[10px] system-font tracking-widest text-cyan-glow/70 mb-2">QUANTITY</div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="sys-btn !py-1 !px-3"
+                    onClick={() => { beep(500, 0.04); setQty((q) => Math.max(1, q - 1)); }}
+                    disabled={qty <= 1}
+                  >
+                    −
+                  </button>
+                  <div className="flex-1 text-center text-cyan-glow system-font tracking-widest text-lg">
+                    {qty}
+                  </div>
+                  <button
+                    className="sys-btn !py-1 !px-3"
+                    onClick={() => { beep(700, 0.04); setQty((q) => Math.min(maxAffordable, q + 1)); }}
+                    disabled={qty >= maxAffordable}
+                  >
+                    +
+                  </button>
+                  <button
+                    className="sys-btn !py-1 !px-3 !text-[10px]"
+                    onClick={() => { beep(720, 0.04); setQty(maxAffordable); }}
+                    disabled={maxAffordable <= 1}
+                  >
+                    MAX
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="sys-panel !p-3 bg-cyan-glow/5 border-cyan-glow/20 mb-4 space-y-1 text-xs system-font">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Unit Cost</span>
+                <span className="text-cyan-glow">{confirmItem.cost} G</span>
+              </div>
+              {!isGearType && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Quantity</span>
+                  <span className="text-cyan-glow">× {qty}</span>
+                </div>
+              )}
+              <div className="flex justify-between pt-1 border-t border-cyan-glow/20">
+                <span className="text-cyan-glow/80">TOTAL</span>
+                <span className="sys-text-gold font-bold">{totalCost} G</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Gold Balance After</span>
+                <span className={canConfirm ? "text-cyan-glow" : "sys-text-danger"}>
+                  {state.gold - totalCost} G
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                className="flex-1 sys-btn !py-2"
+                onClick={closeConfirm}
+              >
+                CANCEL
+              </button>
+              <button
+                className={`flex-1 sys-btn !py-2 ${canConfirm ? "!border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)]" : ""}`}
+                onClick={() => {
+                  if (!canConfirm) return;
+                  beep(880, 0.06);
+                  buyItem(confirmItem.name, confirmItem.cost, qty);
+                  closeConfirm();
+                }}
+                disabled={!canConfirm}
+              >
+                CONFIRM PURCHASE
+              </button>
+            </div>
+            <p className="mt-3 text-[9px] system-font tracking-widest text-muted-foreground text-center">
+              Gold auto-deducted · Item placed in inventory
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
