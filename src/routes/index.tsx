@@ -1263,7 +1263,10 @@ function ReaderView({
 
 
       {isExhausted && (
-        <div className="min-h-[80vh] flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-sys-slide-in"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="sys-panel sys-panel-corners max-w-md w-full p-6 text-center border-[color:var(--color-danger-glow)] !border-[color:var(--color-danger-glow)]/60 relative animate-sys-pulse">
             <div className="text-xs tracking-[0.4em] sys-text-danger system-font mb-2">
               [SYSTEM WARNING · EMERGENCY]
@@ -1274,8 +1277,8 @@ function ReaderView({
             <div className="w-full h-[1px] bg-red-600/30 my-4" />
             <p className="text-xs text-muted-foreground system-font tracking-wide leading-relaxed mb-6 text-left">
               Your physical and mental strength have depleted below standard hunter thresholds.
-              All actions (reading) have been suspended by the System.
-              You must execute recovery before attempting to continue training.
+              All actions have been suspended by the System. Execute recovery to resume where
+              you left off — Page {currentPage + 1} of {pages.length}.
             </p>
             <div className="sys-panel !p-4 bg-red-950/20 border-red-500/20 text-left mb-6 space-y-2 text-xs system-font">
               <div className="flex justify-between">
@@ -1305,9 +1308,13 @@ function ReaderView({
             >
               [ REST AND RECOVER ]
             </SysBtn>
+            <p className="mt-3 text-[10px] system-font tracking-widest text-muted-foreground">
+              Resuming reader at your last page after recovery.
+            </p>
           </div>
         </div>
       )}
+
 
       {/* Pager: previous / next chapter */}
       {!isExhausted && pages.length > 0 && (
@@ -1355,9 +1362,11 @@ function ReaderView({
 
 // ---------- Quests ----------
 function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
-  const { state } = game;
+  const { state, completeQuest } = game;
   const claimDailyChest = (game as any).claimDailyChest;
   const rerollDailies = (game as any).rerollDailies;
+
+  const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
 
   const dailyQuests = state.quests.filter((q) => q.type === "daily");
   const dailyDoneCount = dailyQuests.filter((q) => q.done).length;
@@ -1370,6 +1379,17 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
   ];
 
   const statsWithGear = getStatsWithGear(state);
+  const selectedQuest = selectedQuestId ? state.quests.find((q) => q.id === selectedQuestId) : null;
+  const selectedGold = selectedQuest
+    ? Math.round((selectedQuest.reward / 3) * (1 + statsWithGear.str * 0.02))
+    : 0;
+  const selectedRankLabel = selectedQuest
+    ? selectedQuest.type === "daily"
+      ? "E-Rank Gate"
+      : selectedQuest.type === "weekly"
+      ? "B-Rank Gate"
+      : "S-Rank Main Story"
+    : "";
 
   return (
     <div className="space-y-4">
@@ -1433,39 +1453,136 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
           <div className="space-y-2">
             {state.quests.filter((q) => q.type === s.type).map((q) => {
               const goldReward = Math.round((q.reward / 3) * (1 + statsWithGear.str * 0.02));
+              const claimable = q.done && !q.claimed;
               return (
-                <div
+                <button
                   key={q.id}
-                  className={`w-full flex items-center gap-3 px-3 py-2 border text-left transition-all ${q.done
-                    ? "border-cyan-glow/20 opacity-60 bg-cyan-glow/5"
-                    : "border-cyan-glow/40"
-                    }`}
+                  onClick={() => { beep(660, 0.04); setSelectedQuestId(q.id); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2 border text-left transition-all hover:bg-cyan-glow/5 ${
+                    q.claimed
+                      ? "border-cyan-glow/20 opacity-60 bg-cyan-glow/5"
+                      : claimable
+                      ? "border-[color:var(--color-gold-glow)]/60 bg-[color:var(--color-gold-glow)]/5 animate-sys-pulse"
+                      : "border-cyan-glow/40 hover:border-cyan-glow"
+                  }`}
                 >
-                  <div className={`w-4 h-4 border flex items-center justify-center ${q.done ? "bg-cyan-glow/40 border-cyan-glow" : "border-cyan-glow/60"
-                    }`}>
+                  <div className={`w-4 h-4 border flex items-center justify-center ${q.done ? "bg-cyan-glow/40 border-cyan-glow" : "border-cyan-glow/60"}`}>
                     {q.done && <div className="w-1.5 h-1.5 bg-cyan-glow" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-xs system-font truncate ${q.done ? "line-through text-cyan-glow/40" : "text-cyan-glow"}`}>
+                    <div className={`text-xs system-font truncate ${q.claimed ? "line-through text-cyan-glow/40" : "text-cyan-glow"}`}>
                       {q.text}
                     </div>
                     <div className="text-[9px] text-muted-foreground mt-0.5 system-font tracking-widest">
-                      Dungeon Rank: {s.type === "daily" ? "E-Rank" : s.type === "weekly" ? "B-Rank" : "S-Rank"}
+                      {claimable ? "★ TAP TO CLAIM REWARD" : q.claimed ? "CLAIMED" : "TAP FOR DETAILS"}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-[10px] text-cyan-glow/70 system-font block">+{q.reward} EXP</span>
                     <span className="text-[10px] sys-text-gold system-font block">+{goldReward} G</span>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
         </SysPanel>
       ))}
+
+      {selectedQuest && (
+        <div
+          className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-sys-slide-in"
+          onClick={() => setSelectedQuestId(null)}
+        >
+          <div
+            className="sys-panel sys-panel-corners max-w-md w-full p-6 relative rounded-t-lg sm:rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="text-[10px] tracking-[0.4em] text-cyan-glow/70 system-font">
+                  [SYSTEM · QUEST DETAILS]
+                </div>
+                <div className="text-[10px] mt-1 system-font tracking-widest sys-text-gold">
+                  {selectedRankLabel}
+                </div>
+              </div>
+              <button
+                className="text-cyan-glow/60 hover:text-cyan-glow"
+                onClick={() => setSelectedQuestId(null)}
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <h3 className="system-font tracking-widest text-cyan-glow text-base font-semibold mb-2 sys-text-glow">
+              {selectedQuest.text}
+            </h3>
+            <div className={`text-[11px] system-font tracking-widest inline-block px-2 py-1 border mb-4 ${
+              selectedQuest.claimed
+                ? "border-cyan-glow/30 text-cyan-glow/50"
+                : selectedQuest.done
+                ? "border-[color:var(--color-gold-glow)]/60 sys-text-gold animate-sys-pulse"
+                : "border-cyan-glow/40 text-cyan-glow/80"
+            }`}>
+              {selectedQuest.claimed ? "STATUS · CLAIMED" : selectedQuest.done ? "STATUS · READY TO CLAIM" : "STATUS · IN PROGRESS"}
+            </div>
+
+            <div className="sys-panel !p-3 bg-cyan-glow/5 border-cyan-glow/20 mb-4 space-y-1.5 text-xs system-font">
+              <div className="text-[10px] tracking-[0.3em] text-cyan-glow/70 mb-1">REWARD PREVIEW</div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Experience</span>
+                <span className="text-cyan-glow">+{selectedQuest.reward} EXP</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Gold (STR bonus)</span>
+                <span className="sys-text-gold">+{selectedGold} G</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Quest Rank</span>
+                <span className="text-cyan-glow">
+                  {selectedQuest.type === "main" ? "S" : selectedQuest.type === "weekly" ? "B" : "E"}
+                </span>
+              </div>
+            </div>
+
+            {!selectedQuest.done && (
+              <p className="text-[10px] system-font text-muted-foreground leading-relaxed mb-4">
+                Progress this objective through gameplay. Once the System marks it complete,
+                return here to claim your reward.
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                className="flex-1 sys-btn !py-2"
+                onClick={() => setSelectedQuestId(null)}
+              >
+                CLOSE
+              </button>
+              <button
+                className={`flex-1 sys-btn !py-2 transition-all ${
+                  selectedQuest.done && !selectedQuest.claimed
+                    ? "!border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)] animate-sys-pulse"
+                    : ""
+                }`}
+                disabled={!selectedQuest.done || !!selectedQuest.claimed}
+                onClick={() => {
+                  beep(880, 0.08);
+                  completeQuest(selectedQuest.id);
+                  setSelectedQuestId(null);
+                }}
+              >
+                {selectedQuest.claimed ? "CLAIMED" : selectedQuest.done ? "★ CLAIM REWARD" : "LOCKED"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 // ---------- Stats ----------
 function StatsView({ game }: { game: ReturnType<typeof useGameState> }) {
@@ -2162,6 +2279,8 @@ function AchievementsView({ game }: { game: ReturnType<typeof useGameState> }) {
 function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state, buyItem } = game;
   const [filter, setFilter] = useState<"all" | "consumable" | "weapon" | "armor" | "accessory">("all");
+  const [confirmItem, setConfirmItem] = useState<ShopItem | null>(null);
+  const [qty, setQty] = useState(1);
   const filtered = filter === "all" ? SHOP_ITEMS : SHOP_ITEMS.filter((i) => i.type === filter);
   const tabs: { id: typeof filter; label: string }[] = [
     { id: "all", label: "ALL" },
@@ -2175,6 +2294,17 @@ function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
       : t === "armor" ? <Shield className="w-5 h-5 text-cyan-glow" />
       : t === "accessory" ? <Gem className="w-5 h-5 text-cyan-glow" />
       : <Sparkles className="w-5 h-5 text-cyan-glow" />;
+
+  const openConfirm = (item: ShopItem) => {
+    setConfirmItem(item);
+    setQty(1);
+  };
+  const closeConfirm = () => setConfirmItem(null);
+
+  const isGearType = confirmItem && confirmItem.type !== "consumable";
+  const maxAffordable = confirmItem ? Math.max(1, Math.floor(state.gold / confirmItem.cost)) : 1;
+  const totalCost = confirmItem ? confirmItem.cost * qty : 0;
+  const canConfirm = confirmItem ? state.gold >= totalCost : false;
 
   return (
     <div className="space-y-4">
@@ -2234,10 +2364,7 @@ function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
                   </div>
                 </div>
                 <SysBtn
-                  onClick={() => {
-                    beep(880, 0.05);
-                    buyItem(item.name, item.cost);
-                  }}
+                  onClick={() => openConfirm(item)}
                   disabled={owned || !canAfford}
                 >
                   {owned ? "OWNED" : `${item.cost} G`}
@@ -2247,6 +2374,120 @@ function ShopView({ game }: { game: ReturnType<typeof useGameState> }) {
           );
         })}
       </div>
+
+      {confirmItem && (
+        <div
+          className="fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-sys-slide-in"
+          onClick={closeConfirm}
+        >
+          <div
+            className="sys-panel sys-panel-corners max-w-md w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[10px] tracking-[0.4em] text-cyan-glow/70 system-font mb-2">
+              [SYSTEM · PURCHASE CONFIRMATION]
+            </div>
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-12 h-12 shrink-0 border border-cyan-glow/40 flex items-center justify-center bg-cyan-glow/5 rounded">
+                {typeIcon(confirmItem.type)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="system-font text-cyan-glow tracking-widest font-semibold">
+                  {confirmItem.name}
+                </div>
+                <div className="text-[10px] text-muted-foreground system-font mt-1 leading-normal">
+                  {confirmItem.desc}
+                </div>
+                {confirmItem.bonuses && (
+                  <div className="text-[9px] sys-text-gold system-font tracking-wide mt-1.5 uppercase">
+                    {Object.entries(confirmItem.bonuses).map(([s, v]) => `+${v} ${s.toUpperCase()}`).join(", ")}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {!isGearType && (
+              <div className="mb-4">
+                <div className="text-[10px] system-font tracking-widest text-cyan-glow/70 mb-2">QUANTITY</div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="sys-btn !py-1 !px-3"
+                    onClick={() => { beep(500, 0.04); setQty((q) => Math.max(1, q - 1)); }}
+                    disabled={qty <= 1}
+                  >
+                    −
+                  </button>
+                  <div className="flex-1 text-center text-cyan-glow system-font tracking-widest text-lg">
+                    {qty}
+                  </div>
+                  <button
+                    className="sys-btn !py-1 !px-3"
+                    onClick={() => { beep(700, 0.04); setQty((q) => Math.min(maxAffordable, q + 1)); }}
+                    disabled={qty >= maxAffordable}
+                  >
+                    +
+                  </button>
+                  <button
+                    className="sys-btn !py-1 !px-3 !text-[10px]"
+                    onClick={() => { beep(720, 0.04); setQty(maxAffordable); }}
+                    disabled={maxAffordable <= 1}
+                  >
+                    MAX
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="sys-panel !p-3 bg-cyan-glow/5 border-cyan-glow/20 mb-4 space-y-1 text-xs system-font">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Unit Cost</span>
+                <span className="text-cyan-glow">{confirmItem.cost} G</span>
+              </div>
+              {!isGearType && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Quantity</span>
+                  <span className="text-cyan-glow">× {qty}</span>
+                </div>
+              )}
+              <div className="flex justify-between pt-1 border-t border-cyan-glow/20">
+                <span className="text-cyan-glow/80">TOTAL</span>
+                <span className="sys-text-gold font-bold">{totalCost} G</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Gold Balance After</span>
+                <span className={canConfirm ? "text-cyan-glow" : "sys-text-danger"}>
+                  {state.gold - totalCost} G
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                className="flex-1 sys-btn !py-2"
+                onClick={closeConfirm}
+              >
+                CANCEL
+              </button>
+              <button
+                className={`flex-1 sys-btn !py-2 ${canConfirm ? "!border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)]" : ""}`}
+                onClick={() => {
+                  if (!canConfirm) return;
+                  beep(880, 0.06);
+                  buyItem(confirmItem.name, confirmItem.cost, qty);
+                  closeConfirm();
+                }}
+                disabled={!canConfirm}
+              >
+                CONFIRM PURCHASE
+              </button>
+            </div>
+            <p className="mt-3 text-[9px] system-font tracking-widest text-muted-foreground text-center">
+              Gold auto-deducted · Item placed in inventory
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

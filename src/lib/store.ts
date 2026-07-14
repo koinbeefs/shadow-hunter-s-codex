@@ -7,8 +7,10 @@ export type Quest = {
   text: string;
   reward: number;
   done: boolean;
+  claimed?: boolean;
   type: "daily" | "weekly" | "main";
 };
+
 
 export type ActivityLog = {
   id: string;
@@ -411,9 +413,9 @@ export function useGameState(notify: Notify) {
       let questRewardExp = 0;
       setState((s) => {
         const q = s.quests.find((x) => x.id === id);
-        if (!q || q.done) return s;
+        if (!q || q.claimed) return s;
         questRewardExp = q.reward;
-        
+
         // Gold reward based on STR (+2% gold per STR point)
         const statsWithGear = getStatsWithGear(s);
         const baseGold = Math.floor(q.reward / 3);
@@ -423,7 +425,7 @@ export function useGameState(notify: Notify) {
         notify(`Quest complete: ${q.text}`, "quest");
         return {
           ...s,
-          quests: s.quests.map((x) => (x.id === id ? { ...x, done: true } : x)),
+          quests: s.quests.map((x) => (x.id === id ? { ...x, done: true, claimed: true } : x)),
           gold: s.gold + goldReward,
           activity: [
             { id: crypto.randomUUID(), ts: Date.now(), message: `[QUEST] ${q.text} — cleared. +${goldReward} Gold` },
@@ -431,13 +433,14 @@ export function useGameState(notify: Notify) {
           ].slice(0, 60),
         };
       });
-      
+
       if (questRewardExp > 0) {
         setTimeout(() => gainExp(questRewardExp, `Quest Cleared: ${id}`), 10);
       }
     },
     [gainExp, notify],
   );
+
 
   const recordPageRead = useCallback(
     (chapterId: string, page: number, total: number, readingMs = 0, chapterOrder?: number) => {
@@ -581,31 +584,38 @@ export function useGameState(notify: Notify) {
   }, [notify]);
 
   const buyItem = useCallback(
-    (itemId: string, cost: number) => {
-      if (state.gold < cost) {
+    (itemId: string, cost: number, qty: number = 1) => {
+      const itemDef = SHOP_ITEMS.find(i => i.name === itemId);
+      const isGear = itemDef && itemDef.type !== "consumable";
+      const effectiveQty = isGear ? 1 : Math.max(1, Math.floor(qty));
+      const totalCost = cost * effectiveQty;
+
+      if (state.gold < totalCost) {
         notify("Insufficient Gold", "danger");
         return;
       }
-      
-      const itemDef = SHOP_ITEMS.find(i => i.name === itemId);
-      const isGear = itemDef && itemDef.type !== "consumable";
-      
       if (isGear && state.inventory.includes(itemId)) {
         notify("Weapon/Armor already owned", "danger");
         return;
       }
 
-      notify(`Purchased: ${itemId}`, "info");
+      notify(
+        effectiveQty > 1
+          ? `Purchased: ${itemId} ×${effectiveQty}`
+          : `Purchased: ${itemId}`,
+        "info",
+      );
       setState((s) => {
+        const additions = Array(effectiveQty).fill(itemId);
         return {
           ...s,
-          gold: s.gold - cost,
-          inventory: [...s.inventory, itemId],
+          gold: s.gold - totalCost,
+          inventory: [...s.inventory, ...additions],
           activity: [
             {
               id: crypto.randomUUID(),
               ts: Date.now(),
-              message: `[SYSTEM] Purchased "${itemId}" for ${cost} Gold.`,
+              message: `[SYSTEM] Purchased "${itemId}"${effectiveQty > 1 ? ` ×${effectiveQty}` : ""} for ${totalCost} Gold.`,
             },
             ...s.activity,
           ].slice(0, 60),
@@ -614,6 +624,7 @@ export function useGameState(notify: Notify) {
     },
     [notify, state.gold, state.inventory],
   );
+
 
   const allocateStatPoint = useCallback(
     (statName: "str" | "agi" | "vit" | "int" | "per") => {
