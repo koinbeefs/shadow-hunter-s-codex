@@ -7,8 +7,10 @@ export type Quest = {
   text: string;
   reward: number;
   done: boolean;
+  claimed?: boolean;
   type: "daily" | "weekly" | "main";
 };
+
 
 export type ActivityLog = {
   id: string;
