@@ -581,31 +581,38 @@ export function useGameState(notify: Notify) {
   }, [notify]);
 
   const buyItem = useCallback(
-    (itemId: string, cost: number) => {
-      if (state.gold < cost) {
+    (itemId: string, cost: number, qty: number = 1) => {
+      const itemDef = SHOP_ITEMS.find(i => i.name === itemId);
+      const isGear = itemDef && itemDef.type !== "consumable";
+      const effectiveQty = isGear ? 1 : Math.max(1, Math.floor(qty));
+      const totalCost = cost * effectiveQty;
+
+      if (state.gold < totalCost) {
         notify("Insufficient Gold", "danger");
         return;
       }
-      
-      const itemDef = SHOP_ITEMS.find(i => i.name === itemId);
-      const isGear = itemDef && itemDef.type !== "consumable";
-      
       if (isGear && state.inventory.includes(itemId)) {
         notify("Weapon/Armor already owned", "danger");
         return;
       }
 
-      notify(`Purchased: ${itemId}`, "info");
+      notify(
+        effectiveQty > 1
+          ? `Purchased: ${itemId} ×${effectiveQty}`
+          : `Purchased: ${itemId}`,
+        "info",
+      );
       setState((s) => {
+        const additions = Array(effectiveQty).fill(itemId);
         return {
           ...s,
-          gold: s.gold - cost,
-          inventory: [...s.inventory, itemId],
+          gold: s.gold - totalCost,
+          inventory: [...s.inventory, ...additions],
           activity: [
             {
               id: crypto.randomUUID(),
               ts: Date.now(),
-              message: `[SYSTEM] Purchased "${itemId}" for ${cost} Gold.`,
+              message: `[SYSTEM] Purchased "${itemId}"${effectiveQty > 1 ? ` ×${effectiveQty}` : ""} for ${totalCost} Gold.`,
             },
             ...s.activity,
           ].slice(0, 60),
@@ -614,6 +621,7 @@ export function useGameState(notify: Notify) {
     },
     [notify, state.gold, state.inventory],
   );
+
 
   const allocateStatPoint = useCallback(
     (statName: "str" | "agi" | "vit" | "int" | "per") => {
