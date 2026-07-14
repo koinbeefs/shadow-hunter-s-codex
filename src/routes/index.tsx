@@ -1362,9 +1362,11 @@ function ReaderView({
 
 // ---------- Quests ----------
 function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
-  const { state } = game;
+  const { state, completeQuest } = game;
   const claimDailyChest = (game as any).claimDailyChest;
   const rerollDailies = (game as any).rerollDailies;
+
+  const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
 
   const dailyQuests = state.quests.filter((q) => q.type === "daily");
   const dailyDoneCount = dailyQuests.filter((q) => q.done).length;
@@ -1377,6 +1379,17 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
   ];
 
   const statsWithGear = getStatsWithGear(state);
+  const selectedQuest = selectedQuestId ? state.quests.find((q) => q.id === selectedQuestId) : null;
+  const selectedGold = selectedQuest
+    ? Math.round((selectedQuest.reward / 3) * (1 + statsWithGear.str * 0.02))
+    : 0;
+  const selectedRankLabel = selectedQuest
+    ? selectedQuest.type === "daily"
+      ? "E-Rank Gate"
+      : selectedQuest.type === "weekly"
+      ? "B-Rank Gate"
+      : "S-Rank Main Story"
+    : "";
 
   return (
     <div className="space-y-4">
@@ -1440,39 +1453,136 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
           <div className="space-y-2">
             {state.quests.filter((q) => q.type === s.type).map((q) => {
               const goldReward = Math.round((q.reward / 3) * (1 + statsWithGear.str * 0.02));
+              const claimable = q.done && !q.claimed;
               return (
-                <div
+                <button
                   key={q.id}
-                  className={`w-full flex items-center gap-3 px-3 py-2 border text-left transition-all ${q.done
-                    ? "border-cyan-glow/20 opacity-60 bg-cyan-glow/5"
-                    : "border-cyan-glow/40"
-                    }`}
+                  onClick={() => { beep(660, 0.04); setSelectedQuestId(q.id); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2 border text-left transition-all hover:bg-cyan-glow/5 ${
+                    q.claimed
+                      ? "border-cyan-glow/20 opacity-60 bg-cyan-glow/5"
+                      : claimable
+                      ? "border-[color:var(--color-gold-glow)]/60 bg-[color:var(--color-gold-glow)]/5 animate-sys-pulse"
+                      : "border-cyan-glow/40 hover:border-cyan-glow"
+                  }`}
                 >
-                  <div className={`w-4 h-4 border flex items-center justify-center ${q.done ? "bg-cyan-glow/40 border-cyan-glow" : "border-cyan-glow/60"
-                    }`}>
+                  <div className={`w-4 h-4 border flex items-center justify-center ${q.done ? "bg-cyan-glow/40 border-cyan-glow" : "border-cyan-glow/60"}`}>
                     {q.done && <div className="w-1.5 h-1.5 bg-cyan-glow" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-xs system-font truncate ${q.done ? "line-through text-cyan-glow/40" : "text-cyan-glow"}`}>
+                    <div className={`text-xs system-font truncate ${q.claimed ? "line-through text-cyan-glow/40" : "text-cyan-glow"}`}>
                       {q.text}
                     </div>
                     <div className="text-[9px] text-muted-foreground mt-0.5 system-font tracking-widest">
-                      Dungeon Rank: {s.type === "daily" ? "E-Rank" : s.type === "weekly" ? "B-Rank" : "S-Rank"}
+                      {claimable ? "★ TAP TO CLAIM REWARD" : q.claimed ? "CLAIMED" : "TAP FOR DETAILS"}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-[10px] text-cyan-glow/70 system-font block">+{q.reward} EXP</span>
                     <span className="text-[10px] sys-text-gold system-font block">+{goldReward} G</span>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
         </SysPanel>
       ))}
+
+      {selectedQuest && (
+        <div
+          className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-sys-slide-in"
+          onClick={() => setSelectedQuestId(null)}
+        >
+          <div
+            className="sys-panel sys-panel-corners max-w-md w-full p-6 relative rounded-t-lg sm:rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="text-[10px] tracking-[0.4em] text-cyan-glow/70 system-font">
+                  [SYSTEM · QUEST DETAILS]
+                </div>
+                <div className="text-[10px] mt-1 system-font tracking-widest sys-text-gold">
+                  {selectedRankLabel}
+                </div>
+              </div>
+              <button
+                className="text-cyan-glow/60 hover:text-cyan-glow"
+                onClick={() => setSelectedQuestId(null)}
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <h3 className="system-font tracking-widest text-cyan-glow text-base font-semibold mb-2 sys-text-glow">
+              {selectedQuest.text}
+            </h3>
+            <div className={`text-[11px] system-font tracking-widest inline-block px-2 py-1 border mb-4 ${
+              selectedQuest.claimed
+                ? "border-cyan-glow/30 text-cyan-glow/50"
+                : selectedQuest.done
+                ? "border-[color:var(--color-gold-glow)]/60 sys-text-gold animate-sys-pulse"
+                : "border-cyan-glow/40 text-cyan-glow/80"
+            }`}>
+              {selectedQuest.claimed ? "STATUS · CLAIMED" : selectedQuest.done ? "STATUS · READY TO CLAIM" : "STATUS · IN PROGRESS"}
+            </div>
+
+            <div className="sys-panel !p-3 bg-cyan-glow/5 border-cyan-glow/20 mb-4 space-y-1.5 text-xs system-font">
+              <div className="text-[10px] tracking-[0.3em] text-cyan-glow/70 mb-1">REWARD PREVIEW</div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Experience</span>
+                <span className="text-cyan-glow">+{selectedQuest.reward} EXP</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Gold (STR bonus)</span>
+                <span className="sys-text-gold">+{selectedGold} G</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Quest Rank</span>
+                <span className="text-cyan-glow">
+                  {selectedQuest.type === "main" ? "S" : selectedQuest.type === "weekly" ? "B" : "E"}
+                </span>
+              </div>
+            </div>
+
+            {!selectedQuest.done && (
+              <p className="text-[10px] system-font text-muted-foreground leading-relaxed mb-4">
+                Progress this objective through gameplay. Once the System marks it complete,
+                return here to claim your reward.
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                className="flex-1 sys-btn !py-2"
+                onClick={() => setSelectedQuestId(null)}
+              >
+                CLOSE
+              </button>
+              <button
+                className={`flex-1 sys-btn !py-2 transition-all ${
+                  selectedQuest.done && !selectedQuest.claimed
+                    ? "!border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)] animate-sys-pulse"
+                    : ""
+                }`}
+                disabled={!selectedQuest.done || !!selectedQuest.claimed}
+                onClick={() => {
+                  beep(880, 0.08);
+                  completeQuest(selectedQuest.id);
+                  setSelectedQuestId(null);
+                }}
+              >
+                {selectedQuest.claimed ? "CLAIMED" : selectedQuest.done ? "★ CLAIM REWARD" : "LOCKED"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 // ---------- Stats ----------
 function StatsView({ game }: { game: ReturnType<typeof useGameState> }) {
