@@ -145,6 +145,13 @@ export function expForNextLevel(level: number) {
   return Math.floor(100 * Math.pow(1.25, level - 1));
 }
 
+// EXP gain scaling: as level rises, raw EXP gained is reduced.
+// Level 1 = 1.00x, Level 10 = ~0.69x, Level 25 = ~0.45x, Level 50 = ~0.29x
+// Hard floor at 0.15x so the highest levels still tick forward slowly.
+export function expGainMultiplier(level: number) {
+  return Math.max(0.15, 1 / (1 + (level - 1) * 0.05));
+}
+
 const DAILY_QUESTS_POOL: Omit<Quest, "done">[] = [
   { id: "d1", text: "Daily Warmup: Read 5 pages", reward: 20, type: "daily" },
   { id: "d2", text: "Hunter's Routine: Read 15 pages", reward: 40, type: "daily" },
@@ -326,9 +333,11 @@ export function useGameState(notify: Notify) {
         const statsWithGear = getStatsWithGear(s);
         
         // INT multiplier for EXP gains: +1.5% per INT point
-        const multiplier = 1 + (statsWithGear.int * 0.015);
-        const actualGain = Math.round(amount * multiplier);
-        
+        const intMultiplier = 1 + (statsWithGear.int * 0.015);
+        // Level scaling: higher levels grind harder
+        const levelMultiplier = expGainMultiplier(level);
+        const actualGain = Math.max(1, Math.round(amount * intMultiplier * levelMultiplier));
+
         exp += actualGain;
         const newActivity = [...s.activity];
         let statPoints = s.statPoints || 0;
@@ -854,6 +863,41 @@ export function useGameState(notify: Notify) {
     });
   }, [notify, state.gold]);
 
+  const sellItem = useCallback(
+    (itemName: string) => {
+      const itemDef = SHOP_ITEMS.find((i) => i.name === itemName);
+      if (!itemDef) return;
+      if (!state.inventory.includes(itemName)) {
+        notify("Item not found in inventory", "danger");
+        return;
+      }
+      const refund = Math.max(1, Math.floor(itemDef.cost * 0.5));
+      notify(`Sold ${itemName} for ${refund} Gold`, "info");
+      setState((s) => {
+        const nextInventory = [...s.inventory];
+        const idx = nextInventory.indexOf(itemName);
+        if (idx > -1) nextInventory.splice(idx, 1);
+        const equippedGear = { ...s.equippedGear };
+        (["weapon", "armor", "accessory"] as const).forEach((slot) => {
+          if (equippedGear[slot] === itemName && !nextInventory.includes(itemName)) {
+            equippedGear[slot] = null;
+          }
+        });
+        return {
+          ...s,
+          gold: s.gold + refund,
+          inventory: nextInventory,
+          equippedGear,
+          activity: [
+            { id: crypto.randomUUID(), ts: Date.now(), message: `[SYSTEM] Sold "${itemName}" for ${refund} Gold.` },
+            ...s.activity,
+          ].slice(0, 60),
+        };
+      });
+    },
+    [notify, state.inventory],
+  );
+
   return {
     state,
     hydrated,
@@ -869,6 +913,7 @@ export function useGameState(notify: Notify) {
     allocateStatPoint,
     equipTitle,
     useItem,
+    sellItem,
     claimDailyChest,
     rerollDailies,
     deleteProgress,
