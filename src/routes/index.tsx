@@ -171,9 +171,10 @@ function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const notify = useCallback((msg: string, kind: Toast["kind"] = "info") => {
     const t = { id: crypto.randomUUID(), msg, kind };
-    setToasts((s) => [...s, t]);
+    // Queue with a cap so bursts of quest/purchase notifications don't overlap.
+    setToasts((s) => [...s, t].slice(-5));
     beep(kind === "levelup" ? 880 : kind === "danger" ? 200 : 640, 0.1, 0.06);
-    setTimeout(() => setToasts((s) => s.filter((x) => x.id !== t.id)), kind === "levelup" ? 2600 : 2200);
+    setTimeout(() => setToasts((s) => s.filter((x) => x.id !== t.id)), kind === "levelup" ? 2600 : 2400);
   }, []);
 
   const game = useGameState(notify);
