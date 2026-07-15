@@ -1567,9 +1567,15 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
             <div className="sys-panel !p-3 bg-cyan-glow/5 border-cyan-glow/20 mb-4 space-y-1.5 text-xs system-font">
               <div className="text-[10px] tracking-[0.3em] text-cyan-glow/70 mb-1">REWARD PREVIEW</div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Experience</span>
+                <span className="text-muted-foreground">Base EXP</span>
                 <span className="text-cyan-glow">+{selectedQuest.reward} EXP</span>
               </div>
+              {projected && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">After INT × Lv-Scale</span>
+                  <span className="text-cyan-glow">+{projected.actualExp} EXP</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Gold (STR bonus)</span>
                 <span className="sys-text-gold">+{selectedGold} G</span>
@@ -1581,6 +1587,36 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
                 </span>
               </div>
             </div>
+
+            {projected && (
+              <div className="sys-panel !p-3 border-[color:var(--color-gold-glow)]/25 bg-[color:var(--color-gold-glow)]/5 mb-4 space-y-1.5 text-xs system-font">
+                <div className="text-[10px] tracking-[0.3em] sys-text-gold mb-1">STATUS FORECAST</div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">EXP</span>
+                  <span className="text-cyan-glow">
+                    {state.exp} / {expForNextLevel(state.level)} →{" "}
+                    <span className={projected.leveledUp ? "sys-text-gold" : "text-cyan-glow"}>
+                      {projected.exp} / {projected.nextThreshold}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Level</span>
+                  <span className={projected.leveledUp ? "sys-text-gold animate-sys-pulse font-bold" : "text-cyan-glow"}>
+                    {state.level} → {projected.level}{projected.leveledUp ? "  ▲ LEVEL UP" : ""}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Gold</span>
+                  <span className="sys-text-gold">
+                    {state.gold} → {projected.goldAfter}
+                  </span>
+                </div>
+                <div className="text-[9px] text-cyan-glow/60 pt-1 border-t border-cyan-glow/10">
+                  Derived combat stats stay the same unless a level-up triggers (+1 to every stat, +5 free points).
+                </div>
+              </div>
+            )}
 
             {!selectedQuest.done && (
               <p className="text-[10px] system-font text-muted-foreground leading-relaxed mb-4">
