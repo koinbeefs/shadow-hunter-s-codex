@@ -2086,6 +2086,9 @@ const SHADOW_LORE: Record<string, { rank: string; quote: string; desc: string }>
 function InventoryView({ game }: { game: ReturnType<typeof useGameState> }) {
   const { state } = game;
   const useItem = (game as any).useItem;
+  const sellItem = (game as any).sellItem;
+  const [detail, setDetail] = useState<string | null>(null);
+  const [confirmSell, setConfirmSell] = useState(false);
   const itemSlots = Array.from({ length: 16 }).map((_, i) => state.inventory[i] ?? null);
 
   const isEquipped = (itemName: string) => {
@@ -2094,16 +2097,27 @@ function InventoryView({ game }: { game: ReturnType<typeof useGameState> }) {
     return gear.weapon === itemName || gear.armor === itemName || gear.accessory === itemName;
   };
 
-  const getItemIcon = (name: string) => {
-    if (name === "High-Grade Potion" || name === "Blessed Elixir of Life") return <Flame className="w-8 h-8 text-cyan-glow animate-pulse" />;
-    if (name === "Mana Crystal") return <Sparkles className="w-8 h-8 text-cyan-glow" />;
-    if (name === "Elixir of Focus") return <Flame className="w-8 h-8 text-cyan-glow animate-sys-pulse" />;
-    if (name === "Rune of Reading") return <FileText className="w-8 h-8 text-cyan-glow" />;
-    if (name === "Shadow Sigil") return <Gem className="w-8 h-8 text-cyan-glow" />;
-    if (name === "Monarch's Cloak") return <Shield className="w-8 h-8 text-cyan-glow" />;
-    if (name === "Red Knight's Armor") return <Shield className="w-8 h-8 text-cyan-glow text-red-500" />;
-    if (name === "Shadow Monarch's Crown") return <Gem className="w-8 h-8 text-cyan-glow animate-sys-pulse" />;
-    return <Sparkles className="w-8 h-8 text-cyan-glow" />;
+  const getItemIcon = (name: string, size = "w-8 h-8") => {
+    if (name === "High-Grade Potion" || name === "Blessed Elixir of Life") return <Flame className={`${size} text-cyan-glow animate-pulse`} />;
+    if (name === "Mana Crystal") return <Sparkles className={`${size} text-cyan-glow`} />;
+    if (name === "Elixir of Focus") return <Flame className={`${size} text-cyan-glow animate-sys-pulse`} />;
+    if (name === "Rune of Reading") return <FileText className={`${size} text-cyan-glow`} />;
+    if (name === "Shadow Sigil") return <Gem className={`${size} text-cyan-glow`} />;
+    if (name === "Monarch's Cloak") return <Shield className={`${size} text-cyan-glow`} />;
+    if (name === "Red Knight's Armor") return <Shield className={`${size} text-cyan-glow text-red-500`} />;
+    if (name === "Shadow Monarch's Crown") return <Gem className={`${size} text-cyan-glow animate-sys-pulse`} />;
+    return <Sparkles className={`${size} text-cyan-glow`} />;
+  };
+
+  const detailDef = detail ? SHOP_ITEMS.find((x) => x.name === detail) ?? null : null;
+  const detailIsConsumable = detailDef?.type === "consumable";
+  const detailEquipped = detail ? isEquipped(detail) : false;
+  const detailRefund = detailDef ? Math.max(1, Math.floor(detailDef.cost * 0.5)) : 0;
+  const stackCount = detail ? state.inventory.filter((n) => n === detail).length : 0;
+
+  const closeDetail = () => {
+    setDetail(null);
+    setConfirmSell(false);
   };
 
   return (
@@ -2111,7 +2125,7 @@ function InventoryView({ game }: { game: ReturnType<typeof useGameState> }) {
       <SysPanel>
         <h2 className="system-font tracking-[0.3em] text-cyan-glow sys-text-glow text-sm">INVENTORY</h2>
         <p className="text-[10px] text-muted-foreground system-font tracking-wide mt-1">
-          Consumables restore your vitals; weapons, armor and accessories can be equipped from your Status screen.
+          Tap any item to inspect it. From the detail view you can equip gear, consume consumables, or sell items back for gold.
         </p>
         <div className="mt-3 flex gap-4 text-[10px] system-font tracking-widest">
           <span className="text-cyan-glow/70">SLOTS <span className="sys-text-gold">{state.inventory.length}/16</span></span>
@@ -2131,7 +2145,8 @@ function InventoryView({ game }: { game: ReturnType<typeof useGameState> }) {
               onClick={() => {
                 if (item) {
                   beep(600, 0.05);
-                  useItem(item);
+                  setDetail(item);
+                  setConfirmSell(false);
                 }
               }}
               className={`sys-panel aspect-square flex flex-col items-center justify-center transition-all relative ${equipped
@@ -2168,6 +2183,133 @@ function InventoryView({ game }: { game: ReturnType<typeof useGameState> }) {
           );
         })}
       </div>
+
+      {detail && detailDef && (
+        <div
+          className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-sys-slide-in"
+          onClick={closeDetail}
+        >
+          <div
+            className="sys-panel sys-panel-corners max-w-md w-full p-6 relative rounded-t-lg sm:rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-3 right-3 text-cyan-glow/60 hover:text-cyan-glow"
+              onClick={closeDetail}
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-[10px] tracking-[0.4em] text-cyan-glow/70 system-font mb-2">
+              [SYSTEM · ITEM DETAILS]
+            </div>
+
+            <div className="flex items-center gap-3 mb-3">
+              <div className="sys-panel !p-3 !border-cyan-glow/50 shrink-0">{getItemIcon(detail, "w-10 h-10")}</div>
+              <div className="min-w-0">
+                <h3 className="system-font text-base text-cyan-glow sys-text-glow tracking-widest font-semibold truncate">
+                  {detail}
+                </h3>
+                <div className="flex gap-2 items-center mt-1">
+                  <span className="text-[9px] system-font tracking-widest sys-text-gold border border-cyan-glow/30 px-1.5 py-0.5">
+                    {detailDef.type.toUpperCase()}
+                  </span>
+                  <span className="text-[9px] system-font tracking-widest text-cyan-glow/70">×{stackCount}</span>
+                  {detailEquipped && (
+                    <span className="text-[9px] system-font tracking-widest sys-text-gold animate-sys-pulse">EQUIPPED</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground system-font leading-relaxed mb-3">
+              {detailDef.desc}
+            </p>
+
+            {detailDef.bonuses && (
+              <div className="sys-panel !p-3 bg-cyan-glow/5 border-cyan-glow/20 mb-3 text-xs system-font">
+                <div className="text-[10px] tracking-[0.3em] text-cyan-glow/70 mb-1">STAT BONUSES</div>
+                <div className="grid grid-cols-3 gap-1 text-[11px]">
+                  {Object.entries(detailDef.bonuses).map(([k, v]) => (
+                    <div key={k} className="flex justify-between">
+                      <span className="text-muted-foreground uppercase">{k}</span>
+                      <span className="sys-text-gold">+{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="sys-panel !p-3 bg-cyan-glow/5 border-cyan-glow/20 mb-4 text-xs system-font space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Market Value</span>
+                <span className="text-cyan-glow">{detailDef.cost} G</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Sell Refund (50%)</span>
+                <span className="sys-text-gold">+{detailRefund} G</span>
+              </div>
+            </div>
+
+            {confirmSell ? (
+              <div className="space-y-2">
+                <p className="text-[11px] system-font text-cyan-glow/80 text-center">
+                  Sell 1× {detail} for {detailRefund} Gold?
+                </p>
+                <div className="flex gap-2">
+                  <button className="flex-1 sys-btn !py-2" onClick={() => setConfirmSell(false)}>
+                    CANCEL
+                  </button>
+                  <button
+                    className="flex-1 sys-btn !py-2 !border-[color:var(--color-danger-glow)]/60 !text-[color:var(--color-danger-glow)]"
+                    onClick={() => {
+                      beep(220, 0.08);
+                      sellItem(detail);
+                      // Close detail if stack empties.
+                      if (stackCount <= 1) closeDetail();
+                      else setConfirmSell(false);
+                    }}
+                  >
+                    ✕ CONFIRM SELL
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <button
+                  className={`sys-btn !py-2 ${detailIsConsumable
+                    ? "!border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)]"
+                    : detailEquipped
+                      ? "!border-[color:var(--color-danger-glow)]/60 !text-[color:var(--color-danger-glow)]"
+                      : "!border-[color:var(--color-gold-glow)] !text-[color:var(--color-gold-glow)]"
+                    }`}
+                  onClick={() => {
+                    beep(720, 0.05);
+                    useItem(detail);
+                    if (detailIsConsumable && stackCount <= 1) closeDetail();
+                  }}
+                >
+                  {detailIsConsumable
+                    ? "✧ CONSUME"
+                    : detailEquipped
+                      ? "◇ UNEQUIP"
+                      : "◆ EQUIP"}
+                </button>
+                <button
+                  className="sys-btn !py-2 !text-[color:var(--color-danger-glow)] !border-[color:var(--color-danger-glow)]/40"
+                  onClick={() => setConfirmSell(true)}
+                >
+                  ✕ SELL FOR {detailRefund} G
+                </button>
+                <button className="sys-btn !py-2" onClick={closeDetail}>
+                  CLOSE
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
