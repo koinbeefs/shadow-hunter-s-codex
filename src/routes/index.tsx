@@ -312,24 +312,34 @@ function App() {
         />
       )}
 
-      {/* Toasts */}
+      {/* Toasts — queued stack with staggered subtle animation */}
       <div className="fixed top-4 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none px-4">
-        {toasts.map((t) =>
-          t.kind === "levelup" ? (
-            <div key={t.id} className="animate-sys-level-up sys-panel sys-panel-corners px-8 py-4 text-center">
+        {toasts.map((t, i) => {
+          const style = {
+            animationDelay: `${i * 60}ms`,
+            transform: `scale(${1 - i * 0.02})`,
+            opacity: 1 - i * 0.08,
+          } as React.CSSProperties;
+          return t.kind === "levelup" ? (
+            <div
+              key={t.id}
+              style={style}
+              className="animate-sys-level-up sys-panel sys-panel-corners px-8 py-4 text-center transition-all"
+            >
               <div className="text-xs tracking-[0.4em] text-cyan-glow sys-text-glow">SYSTEM</div>
               <div className="text-3xl font-bold sys-text-glow mt-1 system-font">{t.msg}</div>
             </div>
           ) : (
             <div
               key={t.id}
-              className={`sys-panel px-4 py-2 text-sm animate-sys-slide-in ${t.kind === "danger" ? "!border-[color:var(--color-danger-glow)]/60" : ""}`}
+              style={style}
+              className={`sys-panel px-4 py-2 text-sm animate-sys-slide-in transition-all ${t.kind === "danger" ? "!border-[color:var(--color-danger-glow)]/60" : ""} ${t.kind === "quest" ? "!border-[color:var(--color-gold-glow)]/50" : ""}`}
             >
-              <span className="text-cyan-glow system-font tracking-widest mr-2">[SYSTEM]</span>
+              <span className={`system-font tracking-widest mr-2 ${t.kind === "quest" ? "sys-text-gold" : "text-cyan-glow"}`}>[SYSTEM]</span>
               {t.msg}
             </div>
-          ),
-        )}
+          );
+        })}
       </div>
     </div>
   );
