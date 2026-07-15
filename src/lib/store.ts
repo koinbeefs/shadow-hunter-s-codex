@@ -333,9 +333,11 @@ export function useGameState(notify: Notify) {
         const statsWithGear = getStatsWithGear(s);
         
         // INT multiplier for EXP gains: +1.5% per INT point
-        const multiplier = 1 + (statsWithGear.int * 0.015);
-        const actualGain = Math.round(amount * multiplier);
-        
+        const intMultiplier = 1 + (statsWithGear.int * 0.015);
+        // Level scaling: higher levels grind harder
+        const levelMultiplier = expGainMultiplier(level);
+        const actualGain = Math.max(1, Math.round(amount * intMultiplier * levelMultiplier));
+
         exp += actualGain;
         const newActivity = [...s.activity];
         let statPoints = s.statPoints || 0;
