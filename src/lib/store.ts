@@ -863,6 +863,41 @@ export function useGameState(notify: Notify) {
     });
   }, [notify, state.gold]);
 
+  const sellItem = useCallback(
+    (itemName: string) => {
+      const itemDef = SHOP_ITEMS.find((i) => i.name === itemName);
+      if (!itemDef) return;
+      if (!state.inventory.includes(itemName)) {
+        notify("Item not found in inventory", "danger");
+        return;
+      }
+      const refund = Math.max(1, Math.floor(itemDef.cost * 0.5));
+      notify(`Sold ${itemName} for ${refund} Gold`, "info");
+      setState((s) => {
+        const nextInventory = [...s.inventory];
+        const idx = nextInventory.indexOf(itemName);
+        if (idx > -1) nextInventory.splice(idx, 1);
+        const equippedGear = { ...s.equippedGear };
+        (["weapon", "armor", "accessory"] as const).forEach((slot) => {
+          if (equippedGear[slot] === itemName && !nextInventory.includes(itemName)) {
+            equippedGear[slot] = null;
+          }
+        });
+        return {
+          ...s,
+          gold: s.gold + refund,
+          inventory: nextInventory,
+          equippedGear,
+          activity: [
+            { id: crypto.randomUUID(), ts: Date.now(), message: `[SYSTEM] Sold "${itemName}" for ${refund} Gold.` },
+            ...s.activity,
+          ].slice(0, 60),
+        };
+      });
+    },
+    [notify, state.inventory],
+  );
+
   return {
     state,
     hydrated,
@@ -878,6 +913,7 @@ export function useGameState(notify: Notify) {
     allocateStatPoint,
     equipTitle,
     useItem,
+    sellItem,
     claimDailyChest,
     rerollDailies,
     deleteProgress,
