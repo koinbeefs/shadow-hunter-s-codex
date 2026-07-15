@@ -145,6 +145,13 @@ export function expForNextLevel(level: number) {
   return Math.floor(100 * Math.pow(1.25, level - 1));
 }
 
+// EXP gain scaling: as level rises, raw EXP gained is reduced.
+// Level 1 = 1.00x, Level 10 = ~0.69x, Level 25 = ~0.45x, Level 50 = ~0.29x
+// Hard floor at 0.15x so the highest levels still tick forward slowly.
+export function expGainMultiplier(level: number) {
+  return Math.max(0.15, 1 / (1 + (level - 1) * 0.05));
+}
+
 const DAILY_QUESTS_POOL: Omit<Quest, "done">[] = [
   { id: "d1", text: "Daily Warmup: Read 5 pages", reward: 20, type: "daily" },
   { id: "d2", text: "Hunter's Routine: Read 15 pages", reward: 40, type: "daily" },
