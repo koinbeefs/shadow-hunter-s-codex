@@ -184,6 +184,27 @@ function App() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [refreshTick, setRefreshTick] = useState(0);
 
+  // Restore last active view + reading chapter so the exhaustion overlay
+  // and resume page return correctly after refresh or reinstall.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("sl_ui_state_v1");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { view?: View; readingChapter?: string | null };
+      if (parsed.view) setView(parsed.view);
+      if (parsed.readingChapter) setReadingChapter(parsed.readingChapter);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "sl_ui_state_v1",
+        JSON.stringify({ view, readingChapter }),
+      );
+    } catch { /* ignore */ }
+  }, [view, readingChapter]);
+
   // Reset scroll to top on navigation/view transitions
   useEffect(() => {
     window.scrollTo(0, 0);
