@@ -1394,6 +1394,31 @@ function QuestsView({ game }: { game: ReturnType<typeof useGameState> }) {
   const selectedGold = selectedQuest
     ? Math.round((selectedQuest.reward / 3) * (1 + statsWithGear.str * 0.02))
     : 0;
+
+  // Project EXP/level after claim (mirrors gainExp scaling in the store).
+  const projected = (() => {
+    if (!selectedQuest) return null;
+    const intMult = 1 + statsWithGear.int * 0.015;
+    const lvlMult = expGainMultiplier(state.level);
+    const actualExp = Math.max(1, Math.round(selectedQuest.reward * intMult * lvlMult));
+    let level = state.level;
+    let exp = state.exp + actualExp;
+    let leveledUp = false;
+    while (exp >= expForNextLevel(level)) {
+      exp -= expForNextLevel(level);
+      level += 1;
+      leveledUp = true;
+    }
+    return {
+      actualExp,
+      level,
+      exp,
+      leveledUp,
+      nextThreshold: expForNextLevel(level),
+      goldAfter: state.gold + selectedGold,
+    };
+  })();
+
   const selectedRankLabel = selectedQuest
     ? selectedQuest.type === "daily"
       ? "E-Rank Gate"
